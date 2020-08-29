@@ -5,7 +5,7 @@
 			.timeslice(:ref="slice.name", :class="{datebreak: slice.datebreak}", :data-slice="slice.date.toISOString()", :style="getSliceStyle(slice)") {{ slice.datebreak ? slice.date.format('dddd DD. MMMM') : slice.date.format('LT') }}
 			.timeline(:class="{datebreak: slice.datebreak}", :style="getSliceStyle(slice)")
 		//- .nowline(v-if="nowSlice", :style="{'grid-area': `${nowSlice.slice.name} / 1 / auto / auto`, '--offset': nowSlice.offset}")
-		.now(v-if="nowSlice", ref="now", :style="{'grid-area': `${nowSlice.slice.name} / 1 / auto / auto`, '--offset': nowSlice.offset}")
+		.now(v-if="nowSlice", ref="now", :class="{'on-daybreak': nowSlice.onDaybreak}", :style="{'grid-area': `${nowSlice.slice.name} / 1 / auto / auto`, '--offset': nowSlice.offset}")
 			svg(viewBox="0 0 10 10")
 				path(d="M 0 0 L 10 5 L 0 10 z")
 		.room(:style="{'grid-area': `1 / 1 / auto / auto`}")
@@ -140,6 +140,12 @@ export default {
 			if (slice) {
 				const nextSlice = this.timeslices[this.timeslices.indexOf(slice) + 1]
 				if (!nextSlice) return null
+				// is on daybreak
+				if (nextSlice.date.diff(slice.date, 'minutes') > 30) return {
+					slice: nextSlice,
+					offset: 0,
+					onDaybreak: true
+				}
 				return {
 					slice,
 					offset: this.now.diff(slice.date, 'minutes') / nextSlice.date.diff(slice.date, 'minutes')
@@ -274,6 +280,8 @@ export default {
 			position: absolute
 			top: calc(var(--offset) * 100%)
 			width: 100%
+		&.on-daybreak::before
+			background: repeating-linear-gradient(to right, transparent, transparent 5px, $clr-red 5px, $clr-red 10px)
 		svg
 			position: absolute
 			top: calc(var(--offset) * 100% - 11px)
