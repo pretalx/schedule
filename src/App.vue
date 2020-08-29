@@ -1,7 +1,7 @@
 <template lang="pug">
 .pretalx-schedule
 	template(v-if="schedule")
-		bunt-tabs.days(v-if="days && days.length > 1", :active-tab="currentDay.toISOString()", ref="tabs", v-scrollbar.x="")
+		bunt-tabs.days(v-if="days && days.length > 1", :active-tab="currentDay.toISOString()", ref="tabs")
 			bunt-tab(v-for="day in days", :id="day.toISOString()", :header="moment(day).format('dddd DD. MMMM')", @selected="changeDay(day)")
 		grid-schedule(v-if="containerWidth > 992",
 			:schedule="schedule",

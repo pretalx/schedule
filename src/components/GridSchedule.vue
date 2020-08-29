@@ -1,5 +1,5 @@
 <template lang="pug">
-.c-grid-schedule(v-scrollbar.x.y="")
+.c-grid-schedule()
 	.grid(:style="gridStyle")
 		template(v-for="slice of visibleTimeslices")
 			.timeslice(:ref="slice.name", :class="{datebreak: slice.datebreak}", :data-slice="slice.date.toISOString()", :style="getSliceStyle(slice)") {{ slice.datebreak ? slice.date.format('dddd DD. MMMM') : slice.date.format('LT') }}
