@@ -3,7 +3,7 @@
 	template(v-if="schedule")
 		bunt-tabs.days(v-if="days && days.length > 1", :active-tab="currentDay.toISOString()", ref="tabs")
 			bunt-tab(v-for="day in days", :id="day.toISOString()", :header="moment(day).format('dddd DD. MMMM')", @selected="changeDay(day)")
-		grid-schedule(v-if="containerWidth > 992",
+		grid-schedule(v-if="containerWidth > 992 && format !== 'list'",
 			:schedule="schedule",
 			:sessions="sessions",
 			:currentDay="currentDay",
@@ -31,7 +31,11 @@ export default {
 	components: { LinearSchedule, GridSchedule },
 	props: {
 		eventUrl: String,
-		locale: String
+		locale: String,
+		format: {
+			type: String,
+			default: 'grid'
+		}
 	},
 	provide () {
 		return {
