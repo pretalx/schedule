@@ -134,7 +134,7 @@ export default {
 				ellipsis()
 	&:hover
 		.info
-			border: 1px solid var(--pretalx-clr-primary)
+			border: 1px solid var(--track-color)
 			border-left: none
 			.title
 				color: var(--pretalx-clr-primary)
