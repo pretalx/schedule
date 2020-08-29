@@ -89,7 +89,6 @@ export default {
 		},
 	},
 	async created () {
-		this.containerWidth = this.$parent.$el.offsetWidth
 		moment.locale(this.locale)
 		setInterval(() => this.now = moment(), 30000)
 		this.schedule = await (await fetch(`${this.eventUrl}schedule/widget/v2.json`)).json()
@@ -97,6 +96,7 @@ export default {
 	mounted () {
 		this.resizeObserver = new ResizeObserver(this.onResize)
 		this.resizeObserver.observe(this.$el)
+		this.containerWidth = this.$el.offsetWidth
 	},
 	methods: {
 		changeDay (day) {
