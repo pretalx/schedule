@@ -1,0 +1,20 @@
+@import 'variables'
+variables()
+normalize-css()
+base()
+typography()
+components()
+scrollbars()
+
+a
+	color: var(--pretalx-clr-primary)
+	text-decoration: none
+
+html, body, #app
+	margin: 0
+	height: 100%
+	overflow: hidden
+	--pretalx-clr-primary: #673ab7
+
+.bunt-scrollbar
+	min-height: 0 // firefox can fuck off into space
