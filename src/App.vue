@@ -139,9 +139,14 @@ export default {
 		background-color: $clr-white
 		tabs-style(active-color: var(--pretalx-clr-primary), indicator-color: var(--pretalx-clr-primary), background-color: transparent)
 
+		position: sticky
+		top: 0
+
 		margin-bottom: 0
 		flex: none
 		min-width: 0
+		height: 48px
+		z-index: 30
 		.bunt-tabs-header
 			min-width: min-content
 		.bunt-tabs-header-items

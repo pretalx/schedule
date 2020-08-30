@@ -213,7 +213,7 @@ export default {
 		min-width: min-content
 		> .room
 			position: sticky
-			top: 0
+			top: 48px
 			display: flex
 			justify-content: center
 			align-items: center
