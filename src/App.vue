@@ -35,6 +35,10 @@ export default {
 		format: {
 			type: String,
 			default: 'grid'
+		},
+		version: {
+			type: String,
+			default: ''
 		}
 	},
 	provide () {
@@ -95,7 +99,10 @@ export default {
 	async created () {
 		moment.locale(this.locale)
 		setInterval(() => this.now = moment(), 30000)
-		this.schedule = await (await fetch(`${this.eventUrl}schedule/widget/v2.json`)).json()
+		let url = `${this.eventUrl}schedule/widget/v2.json`
+		if (this.version)
+			url += `?v=${this.version}`
+		this.schedule = await (await fetch(url)).json()
 	},
 	mounted () {
 		this.resizeObserver = new ResizeObserver(this.onResize)
