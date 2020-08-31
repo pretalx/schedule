@@ -1,5 +1,5 @@
 <template lang="pug">
-.pretalx-schedule
+.pretalx-schedule(:style="{'--scrollparent-width': scrollParentWidth + 'px', '--container-width': containerWidth + 'px'}")
 	template(v-if="schedule")
 		bunt-tabs.days(v-if="days && days.length > 1", :active-tab="currentDay.toISOString()", ref="tabs")
 			bunt-tab(v-for="day in days", :id="day.toISOString()", :header="moment(day).format('dddd DD. MMMM')", @selected="changeDay(day)")
@@ -8,12 +8,14 @@
 			:sessions="sessions",
 			:currentDay="currentDay",
 			:now="now",
+			:scrollParent="scrollParent",
 			@changeDay="currentDay = $event")
 		linear-schedule(v-else,
 			:schedule="schedule",
 			:sessions="sessions",
 			:currentDay="currentDay",
 			:now="now",
+			:scrollParent="scrollParent",
 			@changeDay="changeDayByScroll")
 	bunt-progress-circular(v-else, size="huge", :page="true")
 </template>
@@ -23,6 +25,7 @@ import Buntpapier from 'buntpapier'
 import moment from 'moment'
 import LinearSchedule from 'components/LinearSchedule'
 import GridSchedule from 'components/GridSchedule'
+import { findScrollParent } from 'utils'
 
 Vue.use(Buntpapier)
 
@@ -49,6 +52,7 @@ export default {
 	data () {
 		return {
 			moment,
+			scrollParentWidth: 0,
 			containerWidth: Infinity,
 			schedule: null,
 			now: moment(),
@@ -103,11 +107,28 @@ export default {
 		if (this.version)
 			url += `?v=${this.version}`
 		this.schedule = await (await fetch(url)).json()
+		if (!this.scrollParentResizeObserver) {
+			await this.$nextTick()
+			this.onWindowResize()
+		}
 	},
 	mounted () {
-		this.resizeObserver = new ResizeObserver(this.onResize)
-		this.resizeObserver.observe(this.$el)
+		this.scrollParent = findScrollParent(this.$el)
+		if (this.scrollParent) {
+			this.scrollParentResizeObserver = new ResizeObserver(this.onScrollParentResize)
+			this.scrollParentResizeObserver.observe(this.scrollParent)
+			this.scrollParentWidth = this.scrollParent.offsetWidth
+		} else { // scrolling document
+			window.addEventListener('resize', this.onWindowResize)
+			this.onWindowResize()
+		}
+
+		this.containerResizeObserver = new ResizeObserver(this.onContainerResize)
+		this.containerResizeObserver.observe(this.$el)
 		this.containerWidth = this.$el.offsetWidth
+	},
+	destroyed () {
+		// TODO destroy observers
 	},
 	methods: {
 		changeDay (day) {
@@ -120,7 +141,13 @@ export default {
 			// TODO smooth scroll, seems to not work with chrome {behavior: 'smooth', block: 'center', inline: 'center'}
 			tabEl?.$el.scrollIntoView()
 		},
-		onResize (entries) {
+		onWindowResize () {
+			this.scrollParentWidth = document.body.offsetWidth
+		},
+		onScrollParentResize (entries) {
+			this.scrollParentWidth = entries[0].contentRect.width
+		},
+		onContainerResize (entries) {
 			this.containerWidth = entries[0].contentRect.width
 		}
 	}
@@ -132,7 +159,7 @@ export default {
 	display: flex
 	flex-direction: column
 	min-height: 0
-	min-width: 0
+	min-width: min-content
 	height: 100%
 	font-size: 14px
 	.days
@@ -141,7 +168,8 @@ export default {
 
 		position: sticky
 		top: 0
-
+		left: 0
+		width: var(--scrollparent-width)
 		margin-bottom: 0
 		flex: none
 		min-width: 0

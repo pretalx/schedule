@@ -22,7 +22,7 @@
 // - sessions spanning days collide with datebreaks
 import moment from 'moment'
 import Session from './Session'
-import { getLocalizedString } from './utils'
+import { getLocalizedString } from 'utils'
 
 const getSliceName = function (date) {
 	return `slice-${date.format('MM-DD-HH-mm')}`
@@ -34,7 +34,8 @@ export default {
 		schedule: Object,
 		sessions: Array,
 		currentDay: Object,
-		now: Object
+		now: Object,
+		scrollParent: Element
 	},
 	data () {
 		return {
@@ -44,8 +45,6 @@ export default {
 		}
 	},
 	computed: {
-		/* ...mapState('schedule', ['schedule', 'now']),
-		...mapGetters('schedule', ['sessions']), */
 		hasSessionsWithoutRoom () {
 			return this.sessions.some(s => !s.room)
 		},
@@ -160,7 +159,7 @@ export default {
 	async mounted () {
 		await this.$nextTick()
 		this.observer = new IntersectionObserver(this.onIntersect, {
-			root: this.$el,
+			root: this.scrollParent,
 			rootMargin: '-45% 0px'
 		})
 		for (const [ref, el] of Object.entries(this.$refs)) {
@@ -169,7 +168,12 @@ export default {
 		}
 		// scroll to now
 		if (!this.$refs.now) return
-		this.$el.scrollTop = this.$refs.now.offsetTop - 90
+		const scrollTop = this.$refs.now.offsetTop - 90
+		if (this.scrollParent) {
+			this.scrollParent.scrollTop = scrollTop
+		} else {
+			window.scroll({top: scrollTop})
+		}
 	},
 	methods: {
 		getSessionStyle (session) {
@@ -194,7 +198,11 @@ export default {
 			const el = this.$refs[getSliceName(day)]?.[0]
 			if (!el) return
 			const offset = el.offsetTop - 52
-			this.$el.scrollTop = offset
+			if (this.scrollParent) {
+				this.scrollParent.scrollTop = offset
+			} else {
+				window.scroll({top: offset})
+			}
 		},
 		onIntersect (entries) {
 			// TODO still gets stuck when scrolling fast above threshold and back

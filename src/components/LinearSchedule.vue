@@ -15,7 +15,8 @@ export default {
 	props: {
 		sessions: Array,
 		currentDay: Object,
-		now: Object
+		now: Object,
+		scrollParent: Element
 	},
 	data () {
 		return {
@@ -24,8 +25,6 @@ export default {
 		}
 	},
 	computed: {
-		/* ...mapState('schedule', ['now']),
-		...mapGetters('schedule', ['sessions']), */
 		sessionBuckets () {
 			const buckets = {}
 			for (const session of this.sessions.filter(s => s.id)) {
@@ -44,7 +43,7 @@ export default {
 	async mounted () {
 		await this.$nextTick()
 		this.observer = new IntersectionObserver(this.onIntersect, {
-			root: this.$el,
+			root: this.scrollParent,
 			rootMargin: '-45% 0px'
 		})
 		let lastBucket
@@ -61,7 +60,12 @@ export default {
 		const nowIndex = this.sessionBuckets.findIndex(bucket => this.now.isBefore(bucket.date))
 		if (nowIndex < 0) return
 		const nowBucket = this.sessionBuckets[Math.max(0, nowIndex - 1)]
-		this.$el.scrollTop = this.$refs[this.getBucketName(nowBucket.date)]?.[0]?.offsetTop - 90
+		const scrollTop = this.$refs[this.getBucketName(nowBucket.date)]?.[0]?.offsetTop - 90
+		if (this.scrollParent) {
+			this.scrollParent.scrollTop = scrollTop
+		} else {
+			window.scroll({top: scrollTop})
+		}
 	},
 	methods: {
 		getBucketName (date) {
@@ -73,8 +77,12 @@ export default {
 			if (!dayBucket) return
 			const el = this.$refs[this.getBucketName(dayBucket.date)]?.[0]
 			if (!el) return
-			const offset = el.offsetTop
-			this.$el.scrollTop = offset - 8
+			const scrollTop = el.offsetTop - 8
+			if (this.scrollParent) {
+				this.scrollParent.scrollTop = scrollTop
+			} else {
+				window.scroll({top: scrollTop})
+			}
 		},
 		onIntersect (results) {
 			const intersection = results[0]

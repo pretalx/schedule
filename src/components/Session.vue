@@ -15,7 +15,7 @@ a.c-linear-schedule-session(:style="style", :href="link")
 </template>
 <script>
 import moment from 'moment'
-import { getLocalizedString } from './utils'
+import { getLocalizedString } from 'utils'
 
 export default {
 	props: {
