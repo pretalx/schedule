@@ -16,7 +16,8 @@ export default {
 		sessions: Array,
 		currentDay: Object,
 		now: Object,
-		scrollParent: Element
+		scrollParent: Element,
+		offsetTop: Number
 	},
 	data () {
 		return {
@@ -60,7 +61,7 @@ export default {
 		const nowIndex = this.sessionBuckets.findIndex(bucket => this.now.isBefore(bucket.date))
 		if (nowIndex < 0) return
 		const nowBucket = this.sessionBuckets[Math.max(0, nowIndex - 1)]
-		const scrollTop = this.$refs[this.getBucketName(nowBucket.date)]?.[0]?.offsetTop - 90
+		const scrollTop = this.$refs[this.getBucketName(nowBucket.date)]?.[0]?.offsetTop + this.offsetTop - 90
 		if (this.scrollParent) {
 			this.scrollParent.scrollTop = scrollTop
 		} else {
@@ -77,7 +78,7 @@ export default {
 			if (!dayBucket) return
 			const el = this.$refs[this.getBucketName(dayBucket.date)]?.[0]
 			if (!el) return
-			const scrollTop = el.offsetTop - 8
+			const scrollTop = el.offsetTop + this.offsetTop - 8
 			if (this.scrollParent) {
 				this.scrollParent.scrollTop = scrollTop
 			} else {

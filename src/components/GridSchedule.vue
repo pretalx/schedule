@@ -35,7 +35,8 @@ export default {
 		sessions: Array,
 		currentDay: Object,
 		now: Object,
-		scrollParent: Element
+		scrollParent: Element,
+		offsetTop: Number
 	},
 	data () {
 		return {
@@ -168,7 +169,7 @@ export default {
 		}
 		// scroll to now
 		if (!this.$refs.now) return
-		const scrollTop = this.$refs.now.offsetTop - 90
+		const scrollTop = this.$refs.now.offsetTop + this.offsetTop - 90
 		if (this.scrollParent) {
 			this.scrollParent.scrollTop = scrollTop
 		} else {
@@ -197,7 +198,7 @@ export default {
 			if (this.scrolledDay === day) return
 			const el = this.$refs[getSliceName(day)]?.[0]
 			if (!el) return
-			const offset = el.offsetTop - 52
+			const offset = el.offsetTop + this.offsetTop - 52
 			if (this.scrollParent) {
 				this.scrollParent.scrollTop = offset
 			} else {

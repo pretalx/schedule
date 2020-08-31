@@ -9,6 +9,7 @@
 			:currentDay="currentDay",
 			:now="now",
 			:scrollParent="scrollParent",
+			:offsetTop="offsetTop",
 			@changeDay="currentDay = $event")
 		linear-schedule(v-else,
 			:schedule="schedule",
@@ -16,6 +17,7 @@
 			:currentDay="currentDay",
 			:now="now",
 			:scrollParent="scrollParent",
+			:offsetTop="offsetTop",
 			@changeDay="changeDayByScroll")
 	bunt-progress-circular(v-else, size="huge", :page="true")
 </template>
@@ -54,6 +56,7 @@ export default {
 			moment,
 			scrollParentWidth: 0,
 			containerWidth: Infinity,
+			offsetTop: 0,
 			schedule: null,
 			now: moment(),
 			currentDay: moment().startOf('day')
@@ -121,6 +124,9 @@ export default {
 		} else { // scrolling document
 			window.addEventListener('resize', this.onWindowResize)
 			this.onWindowResize()
+			const rect = this.$el.getBoundingClientRect()
+			this.offsetTop = rect.top + window.scrollY
+			// TODO also compute offsetTop for scrollParent
 		}
 
 		this.containerResizeObserver = new ResizeObserver(this.onContainerResize)
