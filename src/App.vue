@@ -83,8 +83,8 @@ export default {
 					id: session.code,
 					title: session.title,
 					abstract: session.abstract,
-					start: moment(session.start),
-					end: moment(session.end),
+					start: moment.parseZone(session.start),
+					end: moment.parseZone(session.end),
 					speakers: session.speakers?.map(s => this.speakersLookup[s]),
 					track: this.tracksLookup[session.track],
 					room: this.roomsLookup[session.room]
