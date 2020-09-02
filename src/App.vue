@@ -130,7 +130,7 @@ export default {
 			return moment.tz(example, this.userTimezone).format('Z') === moment.tz(example, this.schedule.timezone).format('Z')
 		},
 		eventSlug () {
-			let url = ""
+			let url = ''
 			if (this.eventUrl.startsWith('http')) {
 				url = new URL(this.eventUrl)
 			} else {
@@ -249,7 +249,7 @@ export default {
 				margin-right: 6px
 		.bunt-select
 			max-width: 300px
-			margin-right: 8px
+			padding-right: 8px
 	.days
 		background-color: $clr-white
 		tabs-style(active-color: var(--pretalx-clr-primary), indicator-color: var(--pretalx-clr-primary), background-color: transparent)
