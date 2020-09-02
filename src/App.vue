@@ -144,13 +144,16 @@ export default {
 		this.schedule = await (await fetch(url)).json()
 		this.currentTimezone = this.schedule.timezone
 		this.now = moment().tz(this.currentTimezone)
-		this.currentDay = moment().tz(this.currentTimezone).startOf('day')
 		setInterval(() => this.now = moment().tz(this.currentTimezone), 30000)
 		if (!this.scrollParentResizeObserver) {
 			await this.$nextTick()
 			this.onWindowResize()
 		}
 		this.favs = this.loadFavs()
+		this.currentDay = moment().tz(this.currentTimezone).startOf('day')
+		if (!this.days.includes(this.currentDay)) {
+			this.currentDay = this.days[0]
+		}
 	},
 	mounted () {
 		this.scrollParent = findScrollParent(this.$el)
