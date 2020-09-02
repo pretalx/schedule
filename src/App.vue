@@ -183,6 +183,7 @@ export default {
 	.settings
 		max-width: 300px
 		align-self: flex-end
+		margin-right: 8px
 	.days
 		background-color: $clr-white
 		tabs-style(active-color: var(--pretalx-clr-primary), indicator-color: var(--pretalx-clr-primary), background-color: transparent)
