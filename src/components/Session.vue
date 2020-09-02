@@ -12,6 +12,16 @@ a.c-linear-schedule-session(:style="style", :href="link")
 		.bottom-info
 			.track(v-if="session.track") {{ getLocalizedString(session.track.name) }}
 			.room(v-if="showRoom && session.room") {{ getLocalizedString(session.room.name) }}
+	.fav-container(:class="faved ? ['faved'] : []")
+		svg.star(
+			@click.prevent="faved ? $emit('unfav', session.id) : $emit('fav', session.id)",
+			viewBox="0 0 24 24"
+		)
+			polygon(
+				:style="faved ? {fill: '#FFA000', stroke: '#FFA000'} : {stroke: '#FFA000', fill: 'white', strokeWidth: 1.5}"
+				points="14.43,10 12,2 9.57,10 2,10 8.18,14.41 5.83,22 12,17.31 18.18,22 15.83,14.41 22,10"
+			)
+
 </template>
 <script>
 import moment from 'moment-timezone'
@@ -27,6 +37,10 @@ export default {
 		showRoom: {
 			type: Boolean,
 			default: true
+		},
+		faved: {
+			type: Boolean,
+			default: false
 		}
 	},
 	inject: ['eventUrl'],
@@ -71,6 +85,7 @@ export default {
 	margin: 8px
 	overflow: hidden
 	color: $clr-primary-text-light
+	position: relative
 	.time-box
 		width: 69px
 		box-sizing: border-box
@@ -132,12 +147,23 @@ export default {
 				text-align: right
 				color: $clr-secondary-text-light
 				ellipsis()
+	.fav-container
+		display: none
+		position: absolute
+		width: 16px
+		height: 16px
+		top: 2px
+		right: 4px
+		&.faved
+			display: block
 	&:hover
 		.info
 			border: 1px solid var(--track-color)
 			border-left: none
 			.title
 				color: var(--pretalx-clr-primary)
+		.fav-container
+			display: block
 	// +below('m')
 	// 	min-width: 0
 </style>

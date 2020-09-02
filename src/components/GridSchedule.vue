@@ -12,7 +12,15 @@
 		.room(v-for="(room, index) of rooms", :style="{'grid-area': `1 / ${index + 2 } / auto / auto`}") {{ getLocalizedString(room.name) }}
 		.room(v-if="hasSessionsWithoutRoom", :style="{'grid-area': `1 / ${rooms.length + 2} / auto / -1`}") sonstiger Ramsch
 		template(v-for="session of sessions")
-			session(v-if="session.id", :session="session", :style="getSessionStyle(session)", :showAbstract="false", :showRoom="false")
+			session(
+				v-if="session.id",
+				:session="session",
+				:style="getSessionStyle(session)",
+				:showAbstract="false", :showRoom="false",
+				:faved="favs.includes(session.id)",
+				@fav="$emit('fav', session.id)",
+				@unfav="$emit('unfav', session.id)"
+			)
 			.break(v-else, :style="getSessionStyle(session)")
 				.title {{ getLocalizedString(session.title) }}
 </template>
@@ -34,6 +42,7 @@ export default {
 	props: {
 		sessions: Array,
 		rooms: Array,
+		favs: Array,
 		currentDay: Object,
 		now: Object,
 		scrollParent: Element,

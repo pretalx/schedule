@@ -4,7 +4,13 @@
 		.bucket-label(:ref="getBucketName(date)", :data-date="date.format()")
 			.day(v-if="index > 0 && date.clone().startOf('day').diff(sessionBuckets[index - 1].date.clone().startOf('day'), 'day') > 0")  {{ date.format('dddd DD. MMMM') }}
 			.time {{ date.format('LT') }}
-		session(v-for="session of sessions", :session="session")
+		session(
+			v-for="session of sessions",
+			:session="session",
+			:faved="session.id && favs.includes(session.id)",
+			@fav="$emit('fav', session.id)",
+			@unfav="$emit('unfav', session.id)"
+		)
 </template>
 <script>
 import moment from 'moment-timezone'
@@ -14,6 +20,7 @@ export default {
 	components: { Session },
 	props: {
 		sessions: Array,
+		favs: Array,
 		currentDay: Object,
 		now: Object,
 		scrollParent: Element,

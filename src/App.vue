@@ -2,7 +2,14 @@
 .pretalx-schedule(:style="{'--scrollparent-width': scrollParentWidth + 'px', '--container-width': containerWidth + 'px'}")
 	template(v-if="schedule && sessions")
 		.settings
-			bunt-select(name="timezone", :options="[schedule.timezone, userTimezone]", v-model="currentTimezone")
+			bunt-button.fav-toggle(v-if="favs.length", @click="onlyFavs = !onlyFavs", :class="onlyFavs ? ['active'] : []")
+				svg#star(viewBox="0 0 24 24")
+					polygon(
+						:style="{fill: '#FFA000', stroke: '#FFA000'}"
+						points="14.43,10 12,2 9.57,10 2,10 8.18,14.41 5.83,22 12,17.31 18.18,22 15.83,14.41 22,10"
+					)
+				template {{ favs.length }}
+			bunt-select(name="timezone", :options="[{id: schedule.timezone, label: schedule.timezone}, {id: userTimezone, label: userTimezone}]", v-model="currentTimezone")
 		bunt-tabs.days(v-if="days && days.length > 1", :active-tab="currentDay.format()", ref="tabs")
 			bunt-tab(v-for="day in days", :id="day.format()", :header="day.format('dddd DD. MMMM')", @selected="changeDay(day)")
 		grid-schedule(v-if="containerWidth > 992 && format !== 'list'",
@@ -12,14 +19,20 @@
 			:now="now",
 			:scrollParent="scrollParent",
 			:offsetTop="offsetTop",
-			@changeDay="currentDay = $event")
+			:favs="favs",
+			@changeDay="currentDay = $event",
+			@fav="fav($event)",
+			@unfav="unfav($event)")
 		linear-schedule(v-else,
 			:sessions="sessions",
 			:currentDay="currentDay",
 			:now="now",
 			:scrollParent="scrollParent",
 			:offsetTop="offsetTop",
-			@changeDay="changeDayByScroll")
+			:favs="favs",
+			@changeDay="changeDayByScroll",
+			@fav="fav($event)",
+			@unfav="unfav($event)")
 	bunt-progress-circular(v-else, size="huge", :page="true")
 </template>
 <script>
@@ -62,7 +75,9 @@ export default {
 			userTimezone: null,
 			now: moment(),
 			currentDay: null,
-			currentTimezone: null
+			currentTimezone: null,
+			favs: [],
+			onlyFavs: false
 		}
 	},
 	computed: {
@@ -82,6 +97,7 @@ export default {
 			if (!this.schedule || !this.currentTimezone) return
 			const sessions = []
 			for (const session of this.schedule.talks) {
+				if (this.onlyFavs && !this.favs.includes(session.code)) continue
 				sessions.push({
 					id: session.code,
 					title: session.title,
@@ -109,6 +125,11 @@ export default {
 			if (!this.schedule || !this.schedule.talks) return false
 			const example = this.schedule.talks[0].start
 			return moment.tz(example, this.userTimezone).format('Z') === moment.tz(example, this.schedule.timezone).format('Z')
+		},
+		eventSlug () {
+			if (this.eventUrl.startsWith('http'))
+				return new URL(this.eventUrl).pathname.replaceAll('/', '')
+			return new URL('http://example.org/' + this.eventUrl).pathname.replaceAll('/', '')
 		}
 	},
 	async created () {
@@ -126,6 +147,7 @@ export default {
 			await this.$nextTick()
 			this.onWindowResize()
 		}
+		this.favs = this.loadFavs()
 	},
 	mounted () {
 		this.scrollParent = findScrollParent(this.$el)
@@ -167,6 +189,31 @@ export default {
 		},
 		onContainerResize (entries) {
 			this.containerWidth = entries[0].contentRect.width
+		},
+		loadFavs () {
+			const data = localStorage.getItem(`${this.eventSlug}_favs`)
+			if (data) {
+				try {
+					return JSON.parse(data)
+				} catch {
+					localStorage.setItem(`${this.eventSlug}_favs`, '[]')
+				}
+			}
+			return []
+		},
+		saveFavs () {
+			localStorage.setItem(`${this.eventSlug}_favs`, JSON.stringify(this.favs))
+		},
+		fav (id) {
+			if (!this.favs.includes(id)) {
+				this.favs.push(id)
+				this.saveFavs()
+			}
+		},
+		unfav (id) {
+			this.favs = this.favs.filter(elem => elem !== id)
+			this.saveFavs()
+			if (!this.favs.length) this.onlyFavs = false
 		}
 	}
 }
@@ -181,9 +228,24 @@ export default {
 	height: 100%
 	font-size: 14px
 	.settings
-		max-width: 300px
 		align-self: flex-end
-		margin-right: 8px
+		display: flex
+		align-items: center
+		.fav-toggle
+			margin-right: 8px
+			display: flex
+			&.active
+				border: #FFA000 2px solid
+			.bunt-button-text
+				display: flex
+				align-items: center
+			svg
+				width: 20px
+				height: 20px
+				margin-right: 6px
+		.bunt-select
+			max-width: 300px
+			margin-right: 8px
 	.days
 		background-color: $clr-white
 		tabs-style(active-color: var(--pretalx-clr-primary), indicator-color: var(--pretalx-clr-primary), background-color: transparent)
