@@ -1,18 +1,19 @@
 <template lang="pug">
 .pretalx-schedule(:style="{'--scrollparent-width': scrollParentWidth + 'px', '--container-width': containerWidth + 'px'}")
-	template(v-if="schedule")
-		bunt-tabs.days(v-if="days && days.length > 1", :active-tab="currentDay.toISOString()", ref="tabs")
-			bunt-tab(v-for="day in days", :id="day.toISOString()", :header="moment(day).format('dddd DD. MMMM')", @selected="changeDay(day)")
+	template(v-if="schedule && sessions")
+		.settings
+			bunt-select(name="timezone", :options="[schedule.timezone, userTimezone]", v-model="currentTimezone")
+		bunt-tabs.days(v-if="days && days.length > 1", :active-tab="currentDay.format()", ref="tabs")
+			bunt-tab(v-for="day in days", :id="day.format()", :header="day.format('dddd DD. MMMM')", @selected="changeDay(day)")
 		grid-schedule(v-if="containerWidth > 992 && format !== 'list'",
-			:schedule="schedule",
 			:sessions="sessions",
+			:rooms="schedule.rooms",
 			:currentDay="currentDay",
 			:now="now",
 			:scrollParent="scrollParent",
 			:offsetTop="offsetTop",
 			@changeDay="currentDay = $event")
 		linear-schedule(v-else,
-			:schedule="schedule",
 			:sessions="sessions",
 			:currentDay="currentDay",
 			:now="now",
@@ -24,7 +25,7 @@
 <script>
 import Vue from 'vue'
 import Buntpapier from 'buntpapier'
-import moment from 'moment'
+import moment from 'moment-timezone'
 import LinearSchedule from 'components/LinearSchedule'
 import GridSchedule from 'components/GridSchedule'
 import { findScrollParent } from 'utils'
@@ -58,8 +59,10 @@ export default {
 			containerWidth: Infinity,
 			offsetTop: 0,
 			schedule: null,
+			userTimezone: null,
 			now: moment(),
-			currentDay: moment().startOf('day')
+			currentDay: null,
+			currentTimezone: null
 		}
 	},
 	computed: {
@@ -76,15 +79,15 @@ export default {
 			return this.schedule.speakers.reduce((acc, s) => { acc[s.code] = s; return acc }, {})
 		},
 		sessions () {
-			if (!this.schedule) return
+			if (!this.schedule || !this.currentTimezone) return
 			const sessions = []
 			for (const session of this.schedule.talks) {
 				sessions.push({
 					id: session.code,
 					title: session.title,
 					abstract: session.abstract,
-					start: moment.parseZone(session.start),
-					end: moment.parseZone(session.end),
+					start: moment.tz(session.start, this.currentTimezone),
+					end: moment.tz(session.end, this.currentTimezone),
 					speakers: session.speakers?.map(s => this.speakersLookup[s]),
 					track: this.tracksLookup[session.track],
 					room: this.roomsLookup[session.room]
@@ -102,14 +105,23 @@ export default {
 			}
 			return days
 		},
+		inEventTimezone () {
+			if (!this.schedule || !this.schedule.talks) return false
+			const example = this.schedule.talks[0].start
+			return moment.tz(example, this.userTimezone).format('Z') === moment.tz(example, this.schedule.timezone).format('Z')
+		}
 	},
 	async created () {
 		moment.locale(this.locale)
-		setInterval(() => this.now = moment(), 30000)
+		this.userTimezone = moment.tz.guess()
 		let url = `${this.eventUrl}schedule/widget/v2.json`
 		if (this.version)
 			url += `?v=${this.version}`
 		this.schedule = await (await fetch(url)).json()
+		this.currentTimezone = this.schedule.timezone
+		this.now = moment().tz(this.currentTimezone)
+		this.currentDay = moment().tz(this.currentTimezone).startOf('day')
+		setInterval(() => this.now = moment().tz(this.currentTimezone), 30000)
 		if (!this.scrollParentResizeObserver) {
 			await this.$nextTick()
 			this.onWindowResize()
@@ -139,11 +151,11 @@ export default {
 	methods: {
 		changeDay (day) {
 			if (day.isSame(this.currentDay)) return
-			this.currentDay = day
+			this.currentDay = moment(day, this.currentTimezone).startOf('day')
 		},
 		changeDayByScroll (day) {
-			this.currentDay = day
-			const tabEl = this.$refs.tabs.$refs.tabElements.find(el => el.id === day.toISOString())
+			this.currentDay = moment(day, this.currentTimezone).startOf('day')
+			const tabEl = this.$refs.tabs.$refs.tabElements.find(el => el.id === this.currentDay.format())
 			// TODO smooth scroll, seems to not work with chrome {behavior: 'smooth', block: 'center', inline: 'center'}
 			tabEl?.$el.scrollIntoView()
 		},
@@ -168,6 +180,9 @@ export default {
 	min-width: min-content
 	height: 100%
 	font-size: 14px
+	.settings
+		max-width: 300px
+		align-self: flex-end
 	.days
 		background-color: $clr-white
 		tabs-style(active-color: var(--pretalx-clr-primary), indicator-color: var(--pretalx-clr-primary), background-color: transparent)

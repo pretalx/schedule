@@ -14,7 +14,7 @@ a.c-linear-schedule-session(:style="style", :href="link")
 			.room(v-if="showRoom && session.room") {{ getLocalizedString(session.room.name) }}
 </template>
 <script>
-import moment from 'moment'
+import moment from 'moment-timezone'
 import { getLocalizedString } from 'utils'
 
 export default {

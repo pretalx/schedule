@@ -15,20 +15,14 @@ npm start
 npm run build
 ```
 
-### Builds web component
+### Build for pretalx (web component)
 ```
 npm run build:wc
 ```
+
+Then copy ``dist/*js`` to ``src/pretalx/static/agenda/js/`` in pretalx.
 
 ### Lints and fixes files
 ```
 npm run lint
 ```
-
-## TODOs
-
-- do scroll magic on nearest scroll container
-- remove buntpapier
-- remove moment locales
-
-- make usable as vue component

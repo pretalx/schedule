@@ -1,13 +1,13 @@
 <template lang="pug">
 .c-linear-schedule(v-scrollbar.y="")
 	.bucket(v-for="({date, sessions}, index) of sessionBuckets")
-		.bucket-label(:ref="getBucketName(date)", :data-date="date.toISOString()")
+		.bucket-label(:ref="getBucketName(date)", :data-date="date.format()")
 			.day(v-if="index > 0 && date.clone().startOf('day').diff(sessionBuckets[index - 1].date.clone().startOf('day'), 'day') > 0")  {{ date.format('dddd DD. MMMM') }}
 			.time {{ date.format('LT') }}
 		session(v-for="session of sessions", :session="session")
 </template>
 <script>
-import moment from 'moment'
+import moment from 'moment-timezone'
 import Session from './Session'
 
 export default {
@@ -50,7 +50,7 @@ export default {
 		let lastBucket
 		for (const [ref, el] of Object.entries(this.$refs)) {
 			if (!ref.startsWith('bucket')) continue
-			const date = moment(el[0].dataset.date)
+			const date = moment.parseZone(el[0].dataset.date)
 			if (lastBucket) {
 				if (lastBucket.isSame(date, 'date')) continue
 			}
@@ -87,7 +87,7 @@ export default {
 		},
 		onIntersect (results) {
 			const intersection = results[0]
-			const day = moment(intersection.target.dataset.date).startOf('day')
+			const day = moment.parseZone(intersection.target.dataset.date).startOf('day')
 			if (intersection.isIntersecting) {
 				this.scrolledDay = day
 				this.$emit('changeDay', this.scrolledDay)

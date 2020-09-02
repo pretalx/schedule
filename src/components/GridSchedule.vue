@@ -2,7 +2,7 @@
 .c-grid-schedule()
 	.grid(:style="gridStyle")
 		template(v-for="slice of visibleTimeslices")
-			.timeslice(:ref="slice.name", :class="{datebreak: slice.datebreak}", :data-slice="slice.date.toISOString()", :style="getSliceStyle(slice)") {{ slice.datebreak ? slice.date.format('dddd DD. MMMM') : slice.date.format('LT') }}
+			.timeslice(:ref="slice.name", :class="{datebreak: slice.datebreak}", :data-slice="slice.date.format()", :style="getSliceStyle(slice)") {{ slice.datebreak ? slice.date.format('dddd DD. MMMM') : slice.date.format('LT') }}
 			.timeline(:class="{datebreak: slice.datebreak}", :style="getSliceStyle(slice)")
 		//- .nowline(v-if="nowSlice", :style="{'grid-area': `${nowSlice.slice.name} / 1 / auto / auto`, '--offset': nowSlice.offset}")
 		.now(v-if="nowSlice", ref="now", :class="{'on-daybreak': nowSlice.onDaybreak}", :style="{'grid-area': `${nowSlice.slice.name} / 1 / auto / auto`, '--offset': nowSlice.offset}")
@@ -20,7 +20,8 @@
 // TODO
 // - handle click on already selected day (needs some buntpapier hacking)
 // - sessions spanning days collide with datebreaks
-import moment from 'moment'
+// - optionally only show venueless rooms
+import moment from 'moment-timezone'
 import Session from './Session'
 import { getLocalizedString } from 'utils'
 
@@ -31,8 +32,8 @@ const getSliceName = function (date) {
 export default {
 	components: { Session },
 	props: {
-		schedule: Object,
 		sessions: Array,
+		rooms: Array,
 		currentDay: Object,
 		now: Object,
 		scrollParent: Element,
@@ -48,10 +49,6 @@ export default {
 	computed: {
 		hasSessionsWithoutRoom () {
 			return this.sessions.some(s => !s.room)
-		},
-		rooms () {
-			// TODO optionally only show venueless rooms
-			return this.schedule.rooms
 		},
 		timeslices () {
 			const minimumSliceMins = 30
@@ -127,7 +124,7 @@ export default {
 				}
 			}).join(' ')
 			return {
-				'--total-rooms': this.schedule.rooms.length,
+				'--total-rooms': this.rooms.length,
 				'grid-template-rows': rows
 			}
 		},
@@ -209,7 +206,7 @@ export default {
 			// TODO still gets stuck when scrolling fast above threshold and back
 			const entry = entries.sort((a, b) => b.time - a.time).find(entry => entry.isIntersecting)
 			if (!entry) return
-			const day = moment(entry.target.dataset.slice).startOf('day')
+			const day = moment.parseZone(entry.target.dataset.slice).startOf('day')
 			this.scrolledDay = day
 			this.$emit('changeDay', this.scrolledDay)
 		}
