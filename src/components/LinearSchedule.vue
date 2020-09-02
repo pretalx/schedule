@@ -2,7 +2,7 @@
 .c-linear-schedule(v-scrollbar.y="")
 	.bucket(v-for="({date, sessions}, index) of sessionBuckets")
 		.bucket-label(:ref="getBucketName(date)", :data-date="date.format()")
-			.day(v-if="index > 0 && date.clone().startOf('day').diff(sessionBuckets[index - 1].date.clone().startOf('day'), 'day') > 0")  {{ date.format('dddd DD. MMMM') }}
+			.day(v-if="index === 0 || date.clone().startOf('day').diff(sessionBuckets[index - 1].date.clone().startOf('day'), 'day') > 0")  {{ date.format('dddd DD. MMMM') }}
 			.time {{ date.format('LT') }}
 		session(
 			v-for="session of sessions",
@@ -36,13 +36,13 @@ export default {
 		sessionBuckets () {
 			const buckets = {}
 			for (const session of this.sessions.filter(s => s.id)) {
-				const key = session.start.toISOString()
+				const key = session.start.format()
 				if (!buckets[key]) {
 					buckets[key] = []
 				}
 				buckets[key].push(session)
 			}
-			return Object.entries(buckets).map(([date, sessions]) => ({date: moment(date), sessions}))
+			return Object.entries(buckets).map(([date, sessions]) => ({date: sessions[0].start, sessions}))
 		}
 	},
 	watch: {

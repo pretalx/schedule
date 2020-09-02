@@ -10,9 +10,9 @@
 					)
 				template {{ favs.length }}
 			bunt-select(name="timezone", :options="[{id: schedule.timezone, label: schedule.timezone}, {id: userTimezone, label: userTimezone}]", v-model="currentTimezone")
-		bunt-tabs.days(v-if="days && days.length > 1", :active-tab="currentDay.format()", ref="tabs")
+		bunt-tabs.days(v-if="days && days.length > 1", :active-tab="currentDay.format()", ref="tabs" :class="showGrid? ['grid-tabs'] : ['list-tabs']")
 			bunt-tab(v-for="day in days", :id="day.format()", :header="day.format('dddd DD. MMMM')", @selected="changeDay(day)")
-		grid-schedule(v-if="containerWidth > 992 && format !== 'list'",
+		grid-schedule(v-if="showGrid",
 			:sessions="sessions",
 			:rooms="schedule.rooms",
 			:currentDay="currentDay",
@@ -30,7 +30,7 @@
 			:scrollParent="scrollParent",
 			:offsetTop="offsetTop",
 			:favs="favs",
-			@changeDay="changeDayByScroll",
+			@changeDay="currentDay = $event",
 			@fav="fav($event)",
 			@unfav="unfav($event)")
 	bunt-progress-circular(v-else, size="huge", :page="true")
@@ -81,6 +81,9 @@ export default {
 		}
 	},
 	computed: {
+		showGrid () {
+			return this.containerWidth > 992 && this.format !== 'list'
+		},
 		roomsLookup () {
 			if (!this.schedule) return {}
 			return this.schedule.rooms.reduce((acc, room) => { acc[room.id] = room; return acc }, {})
@@ -175,12 +178,6 @@ export default {
 			if (day.isSame(this.currentDay)) return
 			this.currentDay = moment(day, this.currentTimezone).startOf('day')
 		},
-		changeDayByScroll (day) {
-			this.currentDay = moment(day, this.currentTimezone).startOf('day')
-			const tabEl = this.$refs.tabs.$refs.tabElements.find(el => el.id === this.currentDay.format())
-			// TODO smooth scroll, seems to not work with chrome {behavior: 'smooth', block: 'center', inline: 'center'}
-			tabEl?.$el.scrollIntoView()
-		},
 		onWindowResize () {
 			this.scrollParentWidth = document.body.offsetWidth
 		},
@@ -253,12 +250,13 @@ export default {
 		position: sticky
 		top: 0
 		left: 0
-		width: var(--scrollparent-width)
 		margin-bottom: 0
 		flex: none
 		min-width: 0
 		height: 48px
 		z-index: 30
+		&.grid-tabs
+			width: var(--scrollparent-width)
 		.bunt-tabs-header
 			min-width: min-content
 		.bunt-tabs-header-items
