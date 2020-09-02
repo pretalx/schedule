@@ -10,7 +10,7 @@
 					)
 				template {{ favs.length }}
 			bunt-select(name="timezone", :options="[{id: schedule.timezone, label: schedule.timezone}, {id: userTimezone, label: userTimezone}]", v-model="currentTimezone")
-		bunt-tabs.days(v-if="days && days.length > 1", :active-tab="currentDay.format()", ref="tabs" :class="showGrid? ['grid-tabs'] : ['list-tabs']")
+		bunt-tabs.days(v-if="days && days.length > 1", :active-tab="currentDay && currentDay.format()", ref="tabs" :class="showGrid? ['grid-tabs'] : ['list-tabs']")
 			bunt-tab(v-for="day in days", :id="day.format()", :header="day.format('dddd DD. MMMM')", @selected="changeDay(day)")
 		grid-schedule(v-if="showGrid",
 			:sessions="sessions",
@@ -130,9 +130,13 @@ export default {
 			return moment.tz(example, this.userTimezone).format('Z') === moment.tz(example, this.schedule.timezone).format('Z')
 		},
 		eventSlug () {
-			if (this.eventUrl.startsWith('http'))
-				return new URL(this.eventUrl).pathname.replaceAll('/', '')
-			return new URL('http://example.org/' + this.eventUrl).pathname.replaceAll('/', '')
+			let url = ""
+			if (this.eventUrl.startsWith('http')) {
+				url = new URL(this.eventUrl)
+			} else {
+				url = new URL('http://example.org/' + this.eventUrl)
+			}
+			return url.pathname.replace(/\//g, '')
 		}
 	},
 	async created () {
