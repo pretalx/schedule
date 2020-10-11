@@ -153,7 +153,7 @@ export default {
 			await this.$nextTick()
 			this.onWindowResize()
 		}
-		this.favs = this.loadFavs()
+		this.favs = this.pruneFavs(this.loadFavs(), this.schedule)
 		this.currentDay = moment().tz(this.currentTimezone).startOf('day')
 		if (!this.days.includes(this.currentDay)) {
 			this.currentDay = this.days[0]
@@ -204,6 +204,11 @@ export default {
 				}
 			}
 			return []
+		},
+		pruneFavs (favs, schedule) {
+			const talks = schedule.talks || []
+			const talkIds = talks.map(e => e.code)
+			return favs.filter(e => talkIds.includes(e))
 		},
 		saveFavs () {
 			localStorage.setItem(`${this.eventSlug}_favs`, JSON.stringify(this.favs))
