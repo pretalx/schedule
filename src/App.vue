@@ -1,5 +1,5 @@
 <template lang="pug">
-.pretalx-schedule(:style="{'--scrollparent-width': scrollParentWidth + 'px', '--container-width': containerWidth + 'px'}")
+.pretalx-schedule(:style="{'--scrollparent-width': scrollParentWidth + 'px', '--container-width': containerWidth + 'px'}", :class="showGrid ? ['grid-schedule'] : ['list-schedule']")
 	template(v-if="schedule && sessions")
 		.settings
 			bunt-button.fav-toggle(v-if="favs.length", @click="onlyFavs = !onlyFavs", :class="onlyFavs ? ['active'] : []")
@@ -233,9 +233,14 @@ export default {
 	display: flex
 	flex-direction: column
 	min-height: 0
-	min-width: min-content
 	height: 100%
 	font-size: 14px
+	&.grid-schedule
+		min-width: min-content
+	&.list-schedule
+		min-width: 0
+		.days
+			overflow-x: auto
 	.settings
 		align-self: flex-end
 		display: flex
