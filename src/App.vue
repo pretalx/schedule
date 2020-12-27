@@ -2,6 +2,10 @@
 .pretalx-schedule(:style="{'--scrollparent-width': scrollParentWidth + 'px', '--container-width': containerWidth + 'px'}", :class="showGrid ? ['grid-schedule'] : ['list-schedule']")
 	template(v-if="schedule && sessions")
 		.settings
+			template(v-if="!inEventTimezone")
+				bunt-select(name="timezone", :options="[{id: schedule.timezone, label: schedule.timezone}, {id: userTimezone, label: userTimezone}]", v-model="currentTimezone")
+			template(v-else)
+				div.timezone-label.bunt-tab-header-item(v-html="schedule.timezone")
 			bunt-button.fav-toggle(v-if="favs.length", @click="onlyFavs = !onlyFavs", :class="onlyFavs ? ['active'] : []")
 				svg#star(viewBox="0 0 24 24")
 					polygon(
@@ -9,10 +13,6 @@
 						points="14.43,10 12,2 9.57,10 2,10 8.18,14.41 5.83,22 12,17.31 18.18,22 15.83,14.41 22,10"
 					)
 				template {{ favs.length }}
-			template(v-if="!inEventTimezone")
-				bunt-select(name="timezone", :options="[{id: schedule.timezone, label: schedule.timezone}, {id: userTimezone, label: userTimezone}]", v-model="currentTimezone")
-			template(v-else)
-				div.timezone-label.bunt-tab-header-item(v-html="schedule.timezone")
 		bunt-tabs.days(v-if="days && days.length > 1", :active-tab="currentDay && currentDay.format()", ref="tabs" :class="showGrid? ['grid-tabs'] : ['list-tabs']")
 			bunt-tab(v-for="day in days", :id="day.format()", :header="day.format('dddd DD. MMMM')", @selected="changeDay(day)")
 		grid-schedule(v-if="showGrid",
