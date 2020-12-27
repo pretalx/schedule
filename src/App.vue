@@ -245,7 +245,8 @@ export default {
 		.days
 			overflow-x: auto
 	.settings
-		align-self: flex-end
+		margin-left: 18px
+		align-self: flex-start
 		display: flex
 		align-items: center
 		.fav-toggle
@@ -265,6 +266,7 @@ export default {
 			padding-right: 8px
 		.timezone-label
 			cursor: default
+			color: $clr-secondary-text-light
 	.days
 		background-color: $clr-white
 		tabs-style(active-color: var(--pretalx-clr-primary), indicator-color: var(--pretalx-clr-primary), background-color: transparent)
