@@ -145,10 +145,10 @@ export default {
 	async created () {
 		moment.locale(this.locale)
 		this.userTimezone = moment.tz.guess()
-		let version = ""
+		let version = ''
 		if (this.version)
 			version = `v/${this.version}/`
-		let url = `${this.eventUrl}schedule/${version}widget/v2.json`
+		const url = `${this.eventUrl}schedule/${version}widget/v2.json`
 		this.schedule = await (await fetch(url)).json()
 		this.currentTimezone = this.schedule.timezone
 		this.now = moment().tz(this.currentTimezone)

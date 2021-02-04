@@ -1,10 +1,10 @@
 const path = require('path')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
-const MomentTimezoneDataPlugin = require('moment-timezone-data-webpack-plugin');
+const MomentLocalesPlugin = require('moment-locales-webpack-plugin')
+const MomentTimezoneDataPlugin = require('moment-timezone-data-webpack-plugin')
 
-const currentYear = new Date().getFullYear();
+const currentYear = new Date().getFullYear()
 
 module.exports = {
 	transpileDependencies: ['buntpapier'],
@@ -20,7 +20,7 @@ module.exports = {
 				inject: 'head',
 				template: 'public/demo.html'
 			}),
-			new MomentLocalesPlugin({  // 'en' is a part of moment and cannot be removed
+			new MomentLocalesPlugin({ // 'en' is a part of moment and cannot be removed
 				localesToKeep: ['en-ie', 'de', 'fr', 'zh-tw', 'ja'],
 			}),
 			new MomentTimezoneDataPlugin({
