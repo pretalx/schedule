@@ -80,7 +80,7 @@ export default {
 <style lang="stylus">
 .c-linear-schedule-session
 	display: flex
-	min-width: 360px
+	min-width: 300px
 	min-height: 96px
 	margin: 8px
 	overflow: hidden
