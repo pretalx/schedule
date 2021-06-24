@@ -13,7 +13,7 @@
 		.room(v-if="hasSessionsWithoutRoom", :style="{'grid-area': `1 / ${rooms.length + 2} / auto / -1`}") sonstiger Ramsch
 		template(v-for="session of sessions")
 			session(
-				v-if="session.id",
+				v-if="isProperSession(session)",
 				:session="session",
 				:style="getSessionStyle(session)",
 				:showAbstract="false", :showRoom="false",
@@ -62,23 +62,25 @@ export default {
 			const minimumSliceMins = 30
 			const slices = []
 			const slicesLookup = {}
-			const pushSlice = function (date, {hasSession = false} = {}) {
+			const pushSlice = function (date, {hasSession = false, hasBreak = false} = {}) {
 				const name = getSliceName(date)
 				let slice = slicesLookup[name]
 				if (slice) {
 					slice.hasSession = slice.hasSession || hasSession
+					slice.hasBreak = slice.hasBreak || hasBreak
 				} else {
 					slice = {
 						date,
 						name,
 						hasSession,
+						hasBreak,
 						datebreak: date.isSame(date.clone().startOf('day'))
 					}
 					slices.push(slice)
 					slicesLookup[name] = slice
 				}
 			}
-			const fillHalfHours = function (start, end, {hasSession} = {}) {
+			const fillHalfHours = function (start, end, {hasSession, hasBreak} = {}) {
 				// fill to the nearest half hour, then each half hour, then fill to end
 				let mins = end.diff(start, 'minutes')
 				const startingMins = minimumSliceMins - start.minute() % minimumSliceMins
@@ -99,7 +101,7 @@ export default {
 
 				// last slice is actually just after the end of the session and has no session
 				const lastSlice = halfHourSlices.pop()
-				halfHourSlices.forEach(slice => pushSlice(slice, {hasSession}))
+				halfHourSlices.forEach(slice => pushSlice(slice, {hasSession, hasBreak}))
 				pushSlice(lastSlice)
 			}
 			for (const session of this.sessions) {
@@ -111,11 +113,12 @@ export default {
 					fillHalfHours(lastSlice.date, session.start)
 				}
 
+				const isProper = this.isProperSession(session)
 				// add start and end slices for the session itself
-				pushSlice(session.start, {hasSession: true})
+				pushSlice(session.start, {hasSession: isProper, hasBreak: !isProper})
 				pushSlice(session.end)
 				// add half hour slices between a session
-				fillHalfHours(session.start, session.end, {hasSession: true})
+				fillHalfHours(session.start, session.end, {hasSession: isProper, hasBreak: !isProper})
 			}
 
 			const sliceIsFraction = function (slice) {
@@ -124,6 +127,7 @@ export default {
 			}
 
 			const sliceShouldDisplay = function (slice, index) {
+				if (!slice) return
 				// keep slices with sessions or when changing dates
 				if (slice.hasSession || slice.datebreak) return true
 				// keep non-whole slices
@@ -132,6 +136,9 @@ export default {
 				const nextSlice = slices[index + 1]
 				// keep slices before and after non-whole slices
 				if (sliceIsFraction(prevSlice) || sliceIsFraction(nextSlice)) return true
+				// show breaks which would not be gaps, all others are automatically gaps
+				// TODO check how breaks with gaps AROUND them would render
+				if (slice.hasBreak && !prevSlice?.hasBreak && sliceShouldDisplay(nextSlice)) return true
 				return false
 			}
 
@@ -145,7 +152,8 @@ export default {
 				}
 				// insert a gap slice if it would be the first to be removed
 				// but only if it isn't the start of the day
-				if (sliceShouldDisplay(slices[index - 1], index - 1) && !slices[index - 1].datebreak) {
+				const prevSlice = slices[index - 1]
+				if (sliceShouldDisplay(prevSlice, index - 1) && !prevSlice.datebreak) {
 					slice.gap = true
 					compactedSlices.push(slice)
 				}
@@ -222,6 +230,10 @@ export default {
 		}
 	},
 	methods: {
+		isProperSession (session) {
+			// breaks and such don't have ids
+			return !!session.id
+		},
 		getSessionStyle (session) {
 			const roomIndex = this.rooms.indexOf(session.room)
 			return {
