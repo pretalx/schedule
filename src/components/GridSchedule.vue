@@ -82,18 +82,25 @@ export default {
 				// fill to the nearest half hour, then each half hour, then fill to end
 				let mins = end.diff(start, 'minutes')
 				const startingMins = minimumSliceMins - start.minute() % minimumSliceMins
+				// buffer slices because we need to remove hasSession from the last one
+				const halfHourSlices = []
 				if (startingMins) {
-					pushSlice(start.clone().add(startingMins, 'minutes'), {hasSession})
+					halfHourSlices.push(start.clone().add(startingMins, 'minutes'))
 					mins -= startingMins
 				}
 				const endingMins = end.minute() % minimumSliceMins
 				for (let i = 1; i <= mins / minimumSliceMins; i++) {
-					pushSlice(start.clone().add(startingMins + minimumSliceMins * i, 'minutes'), {hasSession: !endingMins && i === mins / minimumSliceMins ? false : hasSession}) // last slice doesn't actually have a session
+					halfHourSlices.push(start.clone().add(startingMins + minimumSliceMins * i, 'minutes'))
 				}
 
 				if (endingMins) {
-					pushSlice(end.clone().subtract(endingMins, 'minutes'))
+					halfHourSlices.push(end.clone().subtract(endingMins, 'minutes'))
 				}
+
+				// last slice is actually just after the end of the session and has no session
+				const lastSlice = halfHourSlices.pop()
+				halfHourSlices.forEach(slice => pushSlice(slice, {hasSession}))
+				pushSlice(lastSlice)
 			}
 			for (const session of this.sessions) {
 				const lastSlice = slices[slices.length - 1]
@@ -112,6 +119,7 @@ export default {
 			}
 
 			const sliceIsFraction = function (slice) {
+				if (!slice) return
 				return slice.date.minutes() !== 0 && slice.date.minutes() !== minimumSliceMins
 			}
 
@@ -136,11 +144,14 @@ export default {
 					continue
 				}
 				// insert a gap slice if it would be the first to be removed
-				if (sliceShouldDisplay(slices[index - 1], index - 1)) {
+				// but only if it isn't the start of the day
+				if (sliceShouldDisplay(slices[index - 1], index - 1) && !slices[index - 1].datebreak) {
 					slice.gap = true
 					compactedSlices.push(slice)
 				}
 			}
+			// remove gap at the end of the schedule
+			if (compactedSlices[compactedSlices.length - 1].gap) compactedSlices.pop()
 			return compactedSlices
 		},
 		visibleTimeslices () {
