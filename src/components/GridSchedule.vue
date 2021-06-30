@@ -130,15 +130,23 @@ export default {
 				if (!slice) return
 				// keep slices with sessions or when changing dates
 				if (slice.hasSession || slice.datebreak) return true
-				// keep non-whole slices
-				if (sliceIsFraction(slice)) return true
 				const prevSlice = slices[index - 1]
 				const nextSlice = slices[index + 1]
-				// keep slices before and after non-whole slices
-				if (sliceIsFraction(prevSlice) || sliceIsFraction(nextSlice)) return true
+				// keep last slice for a break
+				if (slice.hasBreak && !nextSlice?.hasBreak && !nextSlice?.hasSession) return true
+				// drop slices inside breaks
+				if (prevSlice?.hasBreak && slice.hasBreak) return false
+
+				// keep non-whole slices
+				if (sliceIsFraction(slice)) return true
+				// keep slices before and after non-whole slices, if by session or break
+				if (
+					((prevSlice?.hasSession || prevSlice?.hasBreak) && sliceIsFraction(prevSlice)) ||
+					((nextSlice?.hasSession || nextSlice?.hasBreak) && sliceIsFraction(nextSlice))
+				) return true
 				// show breaks which would not be gaps, all others are automatically gaps
 				// TODO check how breaks with gaps AROUND them would render
-				if (slice.hasBreak && !prevSlice?.hasBreak && sliceShouldDisplay(nextSlice)) return true
+				if (slice.hasBreak && !prevSlice?.hasBreak && sliceShouldDisplay(nextSlice, index + 1)) return true
 				return false
 			}
 
@@ -152,8 +160,9 @@ export default {
 				}
 				// insert a gap slice if it would be the first to be removed
 				// but only if it isn't the start of the day
+				// and has no break
 				const prevSlice = slices[index - 1]
-				if (sliceShouldDisplay(prevSlice, index - 1) && !prevSlice.datebreak) {
+				if (sliceShouldDisplay(prevSlice, index - 1) && (!prevSlice.datebreak || slice.hasBreak)) {
 					slice.gap = true
 					compactedSlices.push(slice)
 				}
