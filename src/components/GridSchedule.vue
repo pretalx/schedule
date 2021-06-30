@@ -2,8 +2,8 @@
 .c-grid-schedule()
 	.grid(:style="gridStyle")
 		template(v-for="slice of visibleTimeslices")
-			.timeslice(:ref="slice.name", :class="{datebreak: slice.datebreak}", :data-slice="slice.date.format()", :style="getSliceStyle(slice)") {{ slice.datebreak ? slice.date.format('dddd DD. MMMM') : slice.date.format('LT') }}
-			.timeline(:class="{datebreak: slice.datebreak}", :style="getSliceStyle(slice)")
+			.timeslice(:ref="slice.name", :class="getSliceClasses(slice)", :data-slice="slice.date.format()", :style="getSliceStyle(slice)") {{ getSliceLabel(slice) }}
+			.timeline(:class="getSliceClasses(slice)", :style="getSliceStyle(slice)")
 		//- .nowline(v-if="nowSlice", :style="{'grid-area': `${nowSlice.slice.name} / 1 / auto / auto`, '--offset': nowSlice.offset}")
 		.now(v-if="nowSlice", ref="now", :class="{'on-daybreak': nowSlice.onDaybreak}", :style="{'grid-area': `${nowSlice.slice.name} / 1 / auto / auto`, '--offset': nowSlice.offset}")
 			svg(viewBox="0 0 10 10")
@@ -13,7 +13,7 @@
 		.room(v-if="hasSessionsWithoutRoom", :style="{'grid-area': `1 / ${rooms.length + 2} / auto / -1`}") sonstiger Ramsch
 		template(v-for="session of sessions")
 			session(
-				v-if="session.id",
+				v-if="isProperSession(session)",
 				:session="session",
 				:style="getSessionStyle(session)",
 				:showAbstract="false", :showRoom="false",
@@ -27,7 +27,6 @@
 <script>
 // TODO
 // - handle click on already selected day (needs some buntpapier hacking)
-// - sessions spanning days collide with datebreaks
 // - optionally only show venueless rooms
 import moment from 'moment-timezone'
 import Session from './Session'
@@ -63,57 +62,114 @@ export default {
 			const minimumSliceMins = 30
 			const slices = []
 			const slicesLookup = {}
-			const pushSlice = function (date, datebreak) {
+			const pushSlice = function (date, {hasSession = false, hasBreak = false} = {}) {
 				const name = getSliceName(date)
-				if (slicesLookup[name]) return
-				slices.push({
-					date,
-					name,
-					datebreak
-				})
-				slicesLookup[name] = true
+				let slice = slicesLookup[name]
+				if (slice) {
+					slice.hasSession = slice.hasSession || hasSession
+					slice.hasBreak = slice.hasBreak || hasBreak
+				} else {
+					slice = {
+						date,
+						name,
+						hasSession,
+						hasBreak,
+						datebreak: date.isSame(date.clone().startOf('day'))
+					}
+					slices.push(slice)
+					slicesLookup[name] = slice
+				}
 			}
-			const fillHalfHours = function (start, end) {
+			const fillHalfHours = function (start, end, {hasSession, hasBreak} = {}) {
 				// fill to the nearest half hour, then each half hour, then fill to end
 				let mins = end.diff(start, 'minutes')
 				const startingMins = minimumSliceMins - start.minute() % minimumSliceMins
+				// buffer slices because we need to remove hasSession from the last one
+				const halfHourSlices = []
 				if (startingMins) {
-					pushSlice(start.clone().add(startingMins, 'minutes'))
+					halfHourSlices.push(start.clone().add(startingMins, 'minutes'))
 					mins -= startingMins
 				}
-				for (let i = 1; i <= mins / minimumSliceMins; i++) {
-					pushSlice(start.clone().add(startingMins + minimumSliceMins * i, 'minutes'))
-				}
 				const endingMins = end.minute() % minimumSliceMins
-				if (endingMins) {
-					pushSlice(end.clone().subtract(endingMins, 'minutes'))
+				for (let i = 1; i <= mins / minimumSliceMins; i++) {
+					halfHourSlices.push(start.clone().add(startingMins + minimumSliceMins * i, 'minutes'))
 				}
+
+				if (endingMins) {
+					halfHourSlices.push(end.clone().subtract(endingMins, 'minutes'))
+				}
+
+				// last slice is actually just after the end of the session and has no session
+				const lastSlice = halfHourSlices.pop()
+				halfHourSlices.forEach(slice => pushSlice(slice, {hasSession, hasBreak}))
+				pushSlice(lastSlice)
 			}
 			for (const session of this.sessions) {
 				const lastSlice = slices[slices.length - 1]
 				// gap to last slice
 				if (!lastSlice) {
-					pushSlice(session.start.clone().startOf('day'), true)
+					pushSlice(session.start.clone().startOf('day'))
 				} else if (session.start.isAfter(lastSlice.date, 'minutes')) {
-					if (session.start.isSame(lastSlice.date, 'day')) {
-						// pad slices in gaps for same day
-						fillHalfHours(lastSlice.date, session.start)
-					} else {
-						// add date break
-						// TODO avoid overlaps
-						pushSlice(lastSlice.date.clone().add(minimumSliceMins, 'minutes'))
-						pushSlice(session.start.clone().startOf('day'), true)
-					}
+					fillHalfHours(lastSlice.date, session.start)
 				}
 
+				const isProper = this.isProperSession(session)
 				// add start and end slices for the session itself
-				pushSlice(session.start)
+				pushSlice(session.start, {hasSession: isProper, hasBreak: !isProper})
 				pushSlice(session.end)
 				// add half hour slices between a session
-				fillHalfHours(session.start, session.end)
+				fillHalfHours(session.start, session.end, {hasSession: isProper, hasBreak: !isProper})
 			}
+
+			const sliceIsFraction = function (slice) {
+				if (!slice) return
+				return slice.date.minutes() !== 0 && slice.date.minutes() !== minimumSliceMins
+			}
+
+			const sliceShouldDisplay = function (slice, index) {
+				if (!slice) return
+				// keep slices with sessions or when changing dates
+				if (slice.hasSession || slice.datebreak) return true
+				const prevSlice = slices[index - 1]
+				const nextSlice = slices[index + 1]
+				// keep last slice for a break
+				if (slice.hasBreak && !nextSlice?.hasBreak && !nextSlice?.hasSession) return true
+				// drop slices inside breaks
+				if (prevSlice?.hasBreak && slice.hasBreak) return false
+
+				// keep non-whole slices
+				if (sliceIsFraction(slice)) return true
+				// keep slices before and after non-whole slices, if by session or break
+				if (
+					((prevSlice?.hasSession || prevSlice?.hasBreak) && sliceIsFraction(prevSlice)) ||
+					((nextSlice?.hasSession || nextSlice?.hasBreak) && sliceIsFraction(nextSlice))
+				) return true
+				// show breaks which would not be gaps, all others are automatically gaps
+				// TODO check how breaks with gaps AROUND them would render
+				if (slice.hasBreak && !prevSlice?.hasBreak && sliceShouldDisplay(nextSlice, index + 1)) return true
+				return false
+			}
+
 			slices.sort((a, b) => a.date.diff(b.date))
-			return slices
+			// remove empty gaps in slices
+			const compactedSlices = []
+			for (const [index, slice] of slices.entries()) {
+				if (sliceShouldDisplay(slice, index)) {
+					compactedSlices.push(slice)
+					continue
+				}
+				// insert a gap slice if it would be the first to be removed
+				// but only if it isn't the start of the day
+				// and has no break
+				const prevSlice = slices[index - 1]
+				if (sliceShouldDisplay(prevSlice, index - 1) && (!prevSlice.datebreak || slice.hasBreak)) {
+					slice.gap = true
+					compactedSlices.push(slice)
+				}
+			}
+			// remove gap at the end of the schedule
+			if (compactedSlices[compactedSlices.length - 1].gap) compactedSlices.pop()
+			return compactedSlices
 		},
 		visibleTimeslices () {
 			return this.timeslices.filter(slice => slice.date.minute() % 30 === 0)
@@ -123,14 +179,14 @@ export default {
 			rows += this.timeslices.map((slice, index) => {
 				const next = this.timeslices[index + 1]
 				let height = 60
-				if (next) {
+				if (slice.gap) {
+					height = 100
+				} else if (slice.datebreak) {
+					height = 60
+				} else if (next) {
 					height = Math.min(60, next.date.diff(slice.date, 'minutes') * 2)
 				}
-				if (slice.datebreak) {
-					return `[${slice.name}] minmax(48px, auto)`
-				} else {
-					return `[${slice.name}] minmax(${height}px, auto)`
-				}
+				return `[${slice.name}] minmax(${height}px, auto)`
 			}).join(' ')
 			return {
 				'--total-rooms': this.rooms.length,
@@ -183,11 +239,21 @@ export default {
 		}
 	},
 	methods: {
+		isProperSession (session) {
+			// breaks and such don't have ids
+			return !!session.id
+		},
 		getSessionStyle (session) {
 			const roomIndex = this.rooms.indexOf(session.room)
 			return {
 				'grid-row': `${getSliceName(session.start)} / ${getSliceName(session.end)}`,
 				'grid-column': roomIndex > -1 ? roomIndex + 2 : null
+			}
+		},
+		getSliceClasses (slice) {
+			return {
+				datebreak: slice.datebreak,
+				gap: slice.gap
 			}
 		},
 		getSliceStyle (slice) {
@@ -199,6 +265,10 @@ export default {
 				return {'grid-area': `${slice.name} / 1 / ${this.timeslices[index].name} / auto`}
 			}
 			return {'grid-area': `${slice.name} / 1 / auto / auto`}
+		},
+		getSliceLabel (slice) {
+			if (slice.datebreak) return slice.date.format('ddd[\n]DD. MMM')
+			return slice.date.format('LT')
 		},
 		changeDay (day) {
 			if (this.scrolledDay === day) return
@@ -228,7 +298,7 @@ export default {
 	background-color: $clr-grey-50
 	.grid
 		display: grid
-		grid-template-columns: 80px repeat(var(--total-rooms), 1fr) auto
+		grid-template-columns: 72px repeat(var(--total-rooms), 1fr) auto
 		// grid-gap: 8px
 		position: relative
 		min-width: min-content
@@ -269,6 +339,22 @@ export default {
 		&.datebreak
 			font-weight: 600
 			border-top: 3px solid $clr-dividers-light
+			white-space: pre
+		&.gap
+			position: relative
+			&::before
+				content: ''
+				display: block
+				width: 6px
+				height: calc(100% - 30px - 12px)
+				position: absolute
+				top: 30px
+				left: calc(50% - 5px)
+				background-image: radial-gradient(circle closest-side, $clr-grey-500 calc(100% - .5px), transparent 100%)
+				background-position: 0 0
+				background-size: 5px 15px
+				background-repeat: repeat-y
+
 	.timeline
 		height: 1px
 		background-color: $clr-dividers-light
