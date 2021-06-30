@@ -1,6 +1,6 @@
 {
   "name": "pretalx-schedule",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "",
   "author": "",
@@ -47,7 +47,6 @@
     "vue-template-compiler": "^2.6.11",
     "webpack-bundle-analyzer": "^3.8.0"
   },
-  "_id": "pretalx-schedule@1.0.0",
   "bugs": {
     "url": "https://github.com/pretalx/schedule/issues"
   },
