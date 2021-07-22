@@ -30,8 +30,7 @@ import { getLocalizedString } from 'utils'
 
 const markdownIt = MarkdownIt({
 	linkify: true,
-	breaks: true,
-	false: true
+	breaks: true
 })
 
 export default {
