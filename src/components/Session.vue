@@ -8,7 +8,7 @@ a.c-linear-schedule-session(:style="style", :href="link")
 	.info
 		.title {{ getLocalizedString(session.title) }}
 		.speakers(v-if="session.speakers") {{ session.speakers.map(s => s.name).join(', ') }}
-		.abstract(v-if="showAbstract") {{ session.abstract }}
+		.abstract(v-if="showAbstract", v-html="abstract")
 		.bottom-info
 			.track(v-if="session.track") {{ getLocalizedString(session.track.name) }}
 			.room(v-if="showRoom && session.room") {{ getLocalizedString(session.room.name) }}
@@ -25,7 +25,14 @@ a.c-linear-schedule-session(:style="style", :href="link")
 </template>
 <script>
 import moment from 'moment-timezone'
+import MarkdownIt from 'markdown-it'
 import { getLocalizedString } from 'utils'
+
+const markdownIt = MarkdownIt({
+	linkify: true,
+	breaks: true,
+	false: true
+})
 
 export default {
 	props: {
@@ -73,6 +80,9 @@ export default {
 		},
 		durationMinutes () {
 			return moment(this.session.end).diff(this.session.start, 'minutes')
+		},
+		abstract () {
+			return markdownIt.renderInline(this.session.abstract)
 		}
 	}
 }

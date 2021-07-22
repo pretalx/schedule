@@ -17,6 +17,7 @@
     "buntpapier": "^1.8.6",
     "core-js": "^3.6.5",
     "lodash": "^4.17.20",
+    "markdown-it": "^12.1.0",
     "moment": "^2.27.0",
     "moment-locales-webpack-plugin": "^1.2.0",
     "moment-timezone": "^0.5.31",
