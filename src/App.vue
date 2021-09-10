@@ -158,9 +158,17 @@ export default {
 			this.onWindowResize()
 		}
 		this.favs = this.pruneFavs(this.loadFavs(), this.schedule)
-		this.currentDay = moment().tz(this.currentTimezone).startOf('day')
-		if (!this.days.includes(this.currentDay)) {
-			this.currentDay = this.days[0]
+
+		const fragment = window.location.hash.slice(1)
+		if (fragment && fragment.length === 10) {
+			const initialDay = moment(fragment, 'YYYY-MM-DD')
+
+			const filteredDays = this.days.filter(d => d.format('YYYYMMDD') === initialDay.format('YYYYMMDD'))
+			if (filteredDays.length) {
+				this.currentDay = filteredDays[0]
+			}
+		} else {
+			window.location.hash = '0'
 		}
 	},
 	mounted () {
@@ -188,6 +196,11 @@ export default {
 		changeDay (day) {
 			if (day.isSame(this.currentDay)) return
 			this.currentDay = moment(day, this.currentTimezone).startOf('day')
+			if (window.location.hash === '#0') {
+				window.location.hash = ''
+			} else {
+				window.location.hash = day.format('YYYY-MM-DD')
+			}
 		},
 		onWindowResize () {
 			this.scrollParentWidth = document.body.offsetWidth

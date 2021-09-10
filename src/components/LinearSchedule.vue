@@ -65,6 +65,16 @@ export default {
 			this.observer.observe(el[0])
 		}
 		// scroll to now
+		// scroll to now, unless URL overrides now
+		let fragmentIsDate = false
+		const fragment = window.location.hash.slice(1)
+		if (fragment && fragment.length === 10) {
+			const initialDay = moment(fragment, 'YYYY-MM-DD')
+			if (initialDay) {
+				fragmentIsDate = true
+			}
+		}
+		if (fragmentIsDate) return
 		const nowIndex = this.sessionBuckets.findIndex(bucket => this.now.isBefore(bucket.date))
 		if (nowIndex < 0) return
 		const nowBucket = this.sessionBuckets[Math.max(0, nowIndex - 1)]

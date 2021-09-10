@@ -229,8 +229,16 @@ export default {
 			if (!ref.startsWith('slice') || !ref.endsWith('00-00')) continue
 			this.observer.observe(el[0])
 		}
-		// scroll to now
-		if (!this.$refs.now) return
+		// scroll to now, unless URL overrides now
+		let fragmentIsDate = false
+		const fragment = window.location.hash.slice(1)
+		if (fragment && fragment.length === 10) {
+			const initialDay = moment(fragment, 'YYYY-MM-DD')
+			if (initialDay) {
+				fragmentIsDate = true
+			}
+		}
+		if (fragmentIsDate || !this.$refs.now) return
 		const scrollTop = this.$refs.now.offsetTop + this.offsetTop - 90
 		if (this.scrollParent) {
 			this.scrollParent.scrollTop = scrollTop
