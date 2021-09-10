@@ -298,7 +298,7 @@ export default {
 	background-color: $clr-grey-50
 	.grid
 		display: grid
-		grid-template-columns: 72px repeat(var(--total-rooms), 1fr) auto
+		grid-template-columns: 78px repeat(var(--total-rooms), 1fr) auto
 		// grid-gap: 8px
 		position: relative
 		min-width: min-content
@@ -329,10 +329,11 @@ export default {
 				color: $clr-secondary-text-light
 	.timeslice
 		color: $clr-secondary-text-light
-		padding: 8px 0 0 16px
+		padding: 8px 10px 0 16px
 		white-space: nowrap
 		position: sticky
 		left: 0
+		text-align: center
 		background-color: $clr-grey-50
 		border-top: 1px solid $clr-dividers-light
 		z-index: 20
@@ -349,7 +350,7 @@ export default {
 				height: calc(100% - 30px - 12px)
 				position: absolute
 				top: 30px
-				left: calc(50% - 5px)
+				left: 50%
 				background-image: radial-gradient(circle closest-side, $clr-grey-500 calc(100% - .5px), transparent 100%)
 				background-position: 0 0
 				background-size: 5px 15px
