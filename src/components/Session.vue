@@ -4,7 +4,7 @@ a.c-linear-schedule-session(:style="style", :href="link")
 		.start(:class="{'has-ampm': startTime.ampm}")
 			.time {{ startTime.time }}
 			.ampm(v-if="startTime.ampm") {{ startTime.ampm }}
-		.duration {{ durationMinutes }}min
+		.duration {{ durationPretty }}
 	.info
 		.title {{ getLocalizedString(session.title) }}
 		.speakers(v-if="session.speakers") {{ session.speakers.map(s => s.name).join(', ') }}
@@ -79,6 +79,18 @@ export default {
 		},
 		durationMinutes () {
 			return moment(this.session.end).diff(this.session.start, 'minutes')
+		},
+		durationPretty () {
+			let minutes = this.durationMinutes
+			const hours = Math.floor(minutes / 60)
+			if (minutes <= 60) {
+				return `${minutes}min`
+			}
+			minutes = minutes % 60
+			if (minutes) {
+				return `${hours}h${minutes}min`
+			}
+			return `${hours}h`
 		},
 		abstract () {
 			return markdownIt.renderInline(this.session.abstract)
