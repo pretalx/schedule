@@ -93,7 +93,11 @@ export default {
 			return `${hours}h`
 		},
 		abstract () {
-			return markdownIt.renderInline(this.session.abstract)
+			try {
+				return markdownIt.renderInline(this.session.abstract)
+			} catch (error) {
+				return this.session.abstract
+			}
 		}
 	}
 }
