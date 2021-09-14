@@ -256,8 +256,6 @@ export default {
 		min-width: min-content
 	&.list-schedule
 		min-width: 0
-		.days
-			overflow-x: auto
 	.settings
 		margin-left: 18px
 		align-self: flex-start
@@ -284,7 +282,7 @@ export default {
 	.days
 		background-color: $clr-white
 		tabs-style(active-color: var(--pretalx-clr-primary), indicator-color: var(--pretalx-clr-primary), background-color: transparent)
-
+		overflow-x: auto
 		position: sticky
 		top: 0
 		left: 0
