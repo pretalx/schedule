@@ -291,8 +291,7 @@ export default {
 		min-width: 0
 		height: 48px
 		z-index: 30
-		&.grid-tabs
-			width: var(--scrollparent-width)
+		width: var(--scrollparent-width)
 		.bunt-tabs-header
 			min-width: min-content
 		.bunt-tabs-header-items
