@@ -108,7 +108,7 @@ export default {
 			if (intersection.isIntersecting) {
 				this.scrolledDay = day
 				this.$emit('changeDay', this.scrolledDay)
-			} else if ((intersection.boundingClientRect.y - intersection.rootBounds.y) > 0) {
+			} else if (intersection.rootBounds && (intersection.boundingClientRect.y - intersection.rootBounds.y) > 0) {
 				this.scrolledDay = day.subtract(1, 'day')
 				this.$emit('changeDay', this.scrolledDay)
 			}
