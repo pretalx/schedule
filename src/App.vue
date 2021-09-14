@@ -1,5 +1,5 @@
 <template lang="pug">
-.pretalx-schedule(:style="{'--scrollparent-width': scrollParentWidth + 'px', '--container-width': containerWidth + 'px'}", :class="showGrid ? ['grid-schedule'] : ['list-schedule']")
+.pretalx-schedule(:style="{'--scrollparent-width': scrollParentWidth + 'px'}", :class="showGrid ? ['grid-schedule'] : ['list-schedule']")
 	template(v-if="schedule && sessions")
 		.settings
 			template(v-if="!inEventTimezone")
@@ -71,8 +71,7 @@ export default {
 	data () {
 		return {
 			moment,
-			scrollParentWidth: 0,
-			containerWidth: Infinity,
+			scrollParentWidth: Infinity,
 			offsetTop: 0,
 			schedule: null,
 			userTimezone: null,
@@ -85,7 +84,7 @@ export default {
 	},
 	computed: {
 		showGrid () {
-			return this.containerWidth > 992 && this.format !== 'list'
+			return this.scrollParentWidth > 992 && this.format !== 'list'
 		},
 		roomsLookup () {
 			if (!this.schedule) return {}
@@ -184,10 +183,6 @@ export default {
 			this.offsetTop = rect.top + window.scrollY
 			// TODO also compute offsetTop for scrollParent
 		}
-
-		this.containerResizeObserver = new ResizeObserver(this.onContainerResize)
-		this.containerResizeObserver.observe(this.$el)
-		this.containerWidth = this.$el.offsetWidth
 	},
 	destroyed () {
 		// TODO destroy observers
@@ -207,9 +202,6 @@ export default {
 		},
 		onScrollParentResize (entries) {
 			this.scrollParentWidth = entries[0].contentRect.width
-		},
-		onContainerResize (entries) {
-			this.containerWidth = entries[0].contentRect.width
 		},
 		loadFavs () {
 			const data = localStorage.getItem(`${this.eventSlug}_favs`)
