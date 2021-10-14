@@ -21,7 +21,6 @@
 			:currentDay="currentDay",
 			:now="now",
 			:scrollParent="scrollParent",
-			:offsetTop="offsetTop",
 			:favs="favs",
 			@changeDay="currentDay = $event",
 			@fav="fav($event)",
@@ -31,7 +30,6 @@
 			:currentDay="currentDay",
 			:now="now",
 			:scrollParent="scrollParent",
-			:offsetTop="offsetTop",
 			:favs="favs",
 			@changeDay="currentDay = $event",
 			@fav="fav($event)",
@@ -72,7 +70,6 @@ export default {
 		return {
 			moment,
 			scrollParentWidth: Infinity,
-			offsetTop: 0,
 			schedule: null,
 			userTimezone: null,
 			now: moment(),
@@ -179,9 +176,6 @@ export default {
 		} else { // scrolling document
 			window.addEventListener('resize', this.onWindowResize)
 			this.onWindowResize()
-			const rect = this.$el.getBoundingClientRect()
-			this.offsetTop = rect.top + window.scrollY
-			// TODO also compute offsetTop for scrollParent
 		}
 	},
 	destroyed () {

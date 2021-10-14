@@ -44,8 +44,7 @@ export default {
 		favs: Array,
 		currentDay: Object,
 		now: Object,
-		scrollParent: Element,
-		offsetTop: Number
+		scrollParent: Element
 	},
 	data () {
 		return {
@@ -239,7 +238,7 @@ export default {
 			}
 		}
 		if (fragmentIsDate || !this.$refs.now) return
-		const scrollTop = this.$refs.now.offsetTop + this.offsetTop - 90
+		const scrollTop = this.$refs.now.offsetTop + this.getOffsetTop() - 90
 		if (this.scrollParent) {
 			this.scrollParent.scrollTop = scrollTop
 		} else {
@@ -257,6 +256,11 @@ export default {
 				'grid-row': `${getSliceName(session.start)} / ${getSliceName(session.end)}`,
 				'grid-column': roomIndex > -1 ? roomIndex + 2 : null
 			}
+		},
+		getOffsetTop () {
+			const rect = this.$parent.$el.getBoundingClientRect()
+			console.log(this.$parent.$el)
+			return rect.top + window.scrollY
 		},
 		getSliceClasses (slice) {
 			return {
@@ -282,7 +286,7 @@ export default {
 			if (this.scrolledDay === day) return
 			const el = this.$refs[getSliceName(day)]?.[0]
 			if (!el) return
-			const offset = el.offsetTop + this.offsetTop - 52
+			const offset = el.offsetTop + this.getOffsetTop()
 			if (this.scrollParent) {
 				this.scrollParent.scrollTop = offset
 			} else {
