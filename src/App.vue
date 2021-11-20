@@ -167,8 +167,16 @@ export default {
 			window.location.hash = '0'
 		}
 	},
-	mounted () {
-		this.scrollParent = findScrollParent(this.$el)
+	async mounted () {
+		// We block until we have either a regular parent or a shadow DOM parent
+		await new Promise((resolve) => {
+			const poll = () => {
+				if (this.$el.parentElement || this.$el.getRootNode().host) return resolve()
+				setTimeout(poll, 100)
+			}
+			poll()
+		})
+		this.scrollParent = findScrollParent(this.$el.parentElement || this.$el.getRootNode().host)
 		if (this.scrollParent) {
 			this.scrollParentResizeObserver = new ResizeObserver(this.onScrollParentResize)
 			this.scrollParentResizeObserver.observe(this.scrollParent)
