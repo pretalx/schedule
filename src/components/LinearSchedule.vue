@@ -98,7 +98,7 @@ export default {
 			if (!dayBucket) return
 			const el = this.$refs[this.getBucketName(dayBucket.date)]?.[0]
 			if (!el) return
-			const scrollTop = el.offsetTop + this.offsetTop - 8
+			const scrollTop = el.offsetTop + this.getOffsetTop() - 8
 			if (this.scrollParent) {
 				this.scrollParent.scrollTop = scrollTop
 			} else {
