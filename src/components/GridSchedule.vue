@@ -259,7 +259,6 @@ export default {
 		},
 		getOffsetTop () {
 			const rect = this.$parent.$el.getBoundingClientRect()
-			console.log(this.$parent.$el)
 			return rect.top + window.scrollY
 		},
 		getSliceClasses (slice) {
