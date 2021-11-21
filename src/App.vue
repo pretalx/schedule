@@ -14,7 +14,7 @@
 					)
 				template {{ favs.length }}
 		bunt-tabs.days(v-if="days && days.length > 1", :active-tab="currentDay && currentDay.format()", ref="tabs" :class="showGrid? ['grid-tabs'] : ['list-tabs']")
-			bunt-tab(v-for="day in days", :id="day.format()", :header="day.format('dddd DD. MMMM')", @selected="changeDay(day)")
+			bunt-tab(v-for="day in days", :id="day.format()", :header="day.format(dateFormat)", @selected="changeDay(day)")
 		grid-schedule(v-if="showGrid",
 			:sessions="sessions",
 			:rooms="schedule.rooms",
@@ -130,6 +130,12 @@ export default {
 			if (!this.schedule || !this.schedule.talks) return false
 			const example = this.schedule.talks[0].start
 			return moment.tz(example, this.userTimezone).format('Z') === moment.tz(example, this.schedule.timezone).format('Z')
+		},
+		dateFormat () {
+			if (this.days && this.days.length <= 5) return 'dddd DD. MMMM'
+			if (this.days && this.days.length <= 7) return 'dddd DD. MMM'
+			if (this.days) return 'ddd DD. MMM'
+			return 'dddd DD. MMMM'
 		},
 		eventSlug () {
 			let url = ''
