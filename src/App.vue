@@ -134,7 +134,7 @@ export default {
 		dateFormat () {
 			// Defaults to dddd DD. MMMM for: all grid schedules with more than two rooms, and all list schedules with less than five days
 			// After that, we start to shorten the date string, hoping to reduce unwanted scroll behaviour
-			if ((this.showGrid && this.rooms.length > 2) || !this.days || !this.days.length) return 'dddd DD. MMMM'
+			if ((this.showGrid && this.schedule && this.schedule.rooms.length > 2) || !this.days || !this.days.length) return 'dddd DD. MMMM'
 			if (this.days && this.days.length <= 5) return 'dddd DD. MMMM'
 			if (this.days && this.days.length <= 7) return 'dddd DD. MMM'
 			return 'ddd DD. MMM'
