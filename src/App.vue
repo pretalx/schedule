@@ -132,10 +132,12 @@ export default {
 			return moment.tz(example, this.userTimezone).format('Z') === moment.tz(example, this.schedule.timezone).format('Z')
 		},
 		dateFormat () {
+			// Defaults to dddd DD. MMMM for: all grid schedules with more than two rooms, and all list schedules with less than five days
+			// After that, we start to shorten the date string, hoping to reduce unwanted scroll behaviour
+			if ((this.showGrid && this.rooms.length > 2) || !this.days || !this.days.length) return 'dddd DD. MMMM'
 			if (this.days && this.days.length <= 5) return 'dddd DD. MMMM'
 			if (this.days && this.days.length <= 7) return 'dddd DD. MMM'
-			if (this.days) return 'ddd DD. MMM'
-			return 'dddd DD. MMMM'
+			return 'ddd DD. MMM'
 		},
 		eventSlug () {
 			let url = ''
