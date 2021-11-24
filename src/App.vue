@@ -3,7 +3,7 @@
 	template(v-if="schedule && sessions")
 		.settings
 			template(v-if="!inEventTimezone")
-				bunt-select(name="timezone", :options="[{id: schedule.timezone, label: schedule.timezone}, {id: userTimezone, label: userTimezone}]", v-model="currentTimezone")
+				bunt-select(name="timezone", :options="[{id: schedule.timezone, label: schedule.timezone}, {id: userTimezone, label: userTimezone}]", v-model="currentTimezone", @blur="saveTimezone")
 			template(v-else)
 				div.timezone-label.bunt-tab-header-item(v-html="schedule.timezone")
 			bunt-button.fav-toggle(v-if="favs.length", @click="onlyFavs = !onlyFavs", :class="onlyFavs ? ['active'] : []")
@@ -157,7 +157,8 @@ export default {
 			version = `v/${this.version}/`
 		const url = `${this.eventUrl}schedule/${version}widget/v2.json`
 		this.schedule = await (await fetch(url)).json()
-		this.currentTimezone = this.schedule.timezone
+		this.currentTimezone = localStorage.getItem(`${this.eventSlug}_timezone`)
+		this.currentTimezone = [this.schedule.timezone, this.userTimezone].includes(this.currentTimezone) ? this.currentTimezone : this.schedule.timezone
 		this.now = moment().tz(this.currentTimezone)
 		setInterval(() => this.now = moment().tz(this.currentTimezone), 30000)
 		if (!this.scrollParentResizeObserver) {
@@ -212,6 +213,9 @@ export default {
 		},
 		onWindowResize () {
 			this.scrollParentWidth = document.body.offsetWidth
+		},
+		saveTimezone () {
+			localStorage.setItem(`${this.eventSlug}_timezone`, this.currentTimezone)
 		},
 		onScrollParentResize (entries) {
 			this.scrollParentWidth = entries[0].contentRect.width
