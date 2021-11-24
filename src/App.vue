@@ -272,6 +272,8 @@ export default {
 		align-self: flex-start
 		display: flex
 		align-items: center
+		position: sticky
+		left: 18px
 		.fav-toggle
 			margin-right: 8px
 			display: flex
