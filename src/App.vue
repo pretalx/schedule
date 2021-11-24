@@ -1,5 +1,5 @@
 <template lang="pug">
-.pretalx-schedule(:style="{'--schedule-width': scheduleWidth + 'px'}", :class="showGrid ? ['grid-schedule'] : ['list-schedule']")
+.pretalx-schedule(:style="{'--scrollparent-width': scrollParentWidth + 'px', '--schedule-max-width': scheduleMaxWidth + 'px'}", :class="showGrid ? ['grid-schedule'] : ['list-schedule']")
 	template(v-if="schedule && sessions")
 		.settings
 			template(v-if="!inEventTimezone")
@@ -80,7 +80,7 @@ export default {
 		}
 	},
 	computed: {
-		scheduleWidth () {
+		scheduleMaxWidth () {
 			return this.schedule ? Math.min(this.scrollParentWidth, 78 + this.schedule.rooms.length * 650) : this.scrollParentWidth
 		},
 		showGrid () {
@@ -263,7 +263,7 @@ export default {
 	font-size: 14px
 	&.grid-schedule
 		min-width: min-content
-		max-width: var(--schedule-width)
+		max-width: var(--schedule-max-width)
 		margin: 0 auto
 	&.list-schedule
 		min-width: 0
@@ -303,7 +303,7 @@ export default {
 		height: 48px
 		z-index: 30
 		&.grid-tabs
-			width: var(--schedule-width)
+			width: var(--schedule-max-width)
 		.bunt-tabs-header
 			min-width: min-content
 		.bunt-tabs-header-items
