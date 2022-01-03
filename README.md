@@ -2,7 +2,7 @@
 
 ## Project setup
 ```
-npm install
+npm ci
 ```
 
 ### Compiles and hot-reloads for development
@@ -21,6 +21,13 @@ npm run build:wc
 ```
 
 Then copy ``dist/*js`` to ``src/pretalx/static/agenda/js/`` in pretalx.
+
+### Release library to npm
+
+```sh
+npm version minor|patch
+npm publish
+```
 
 ### Lints and fixes files
 ```
