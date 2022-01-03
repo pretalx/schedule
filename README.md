@@ -26,7 +26,7 @@ Then copy ``dist/*js`` to ``src/pretalx/static/agenda/js/`` in pretalx.
 
 ```sh
 npm version minor|patch
-npm publish
+npm publish --access=public
 ```
 
 ### Lints and fixes files
