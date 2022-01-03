@@ -15,8 +15,6 @@
   "main": "index.js",
   "dependencies": {
     "buntpapier": "^1.8.6",
-    "chokidar": "^2.1.8",
-    "core-js": "^3.6.5",
     "lodash": "^4.17.20",
     "markdown-it": "^12.1.0",
     "moment": "^2.27.0",
