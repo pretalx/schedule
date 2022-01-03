@@ -1,5 +1,5 @@
 <template lang="pug">
-a.c-linear-schedule-session(:style="style", :href="link")
+a.c-linear-schedule-session(:class="{faved}", :style="style", :href="link", @click="onSessionLinkClick($event, session)", :target="linkTarget")
 	.time-box
 		.start(:class="{'has-ampm': startTime.ampm}")
 			.time {{ startTime.time }}
@@ -49,7 +49,20 @@ export default {
 			default: false
 		}
 	},
-	inject: ['eventUrl'],
+	inject: {
+		eventUrl: { default: null },
+		linkTarget: { default: '_self' },
+		generateSessionLinkUrl: {
+			default () {
+				return ({eventUrl, session}) => `${eventUrl}talk/${session.id}/`
+			}
+		},
+		onSessionLinkClick: {
+			default () {
+				return () => {}
+			}
+		}
+	},
 	data () {
 		return {
 			getLocalizedString
@@ -57,7 +70,7 @@ export default {
 	},
 	computed: {
 		link () {
-			return `${this.eventUrl}talk/${this.session.id}/`
+			return this.generateSessionLinkUrl({eventUrl: this.eventUrl, session: this.session})
 		},
 		style () {
 			return {

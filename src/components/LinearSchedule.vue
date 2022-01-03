@@ -20,7 +20,12 @@ export default {
 	components: { Session },
 	props: {
 		sessions: Array,
-		favs: Array,
+		favs: {
+			type: Array,
+			default () {
+				return []
+			}
+		},
 		currentDay: Object,
 		now: Object,
 		scrollParent: Element,

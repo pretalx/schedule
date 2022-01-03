@@ -41,7 +41,12 @@ export default {
 	props: {
 		sessions: Array,
 		rooms: Array,
-		favs: Array,
+		favs: {
+			type: Array,
+			default () {
+				return []
+			}
+		},
 		currentDay: Object,
 		now: Object,
 		scrollParent: Element
