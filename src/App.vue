@@ -273,6 +273,7 @@ export default {
 		display: flex
 		align-items: center
 		position: sticky
+		z-index: 100
 		left: 18px
 		.fav-toggle
 			margin-right: 8px
