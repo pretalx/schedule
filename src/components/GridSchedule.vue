@@ -66,25 +66,27 @@ export default {
 			const minimumSliceMins = 30
 			const slices = []
 			const slicesLookup = {}
-			const pushSlice = function (date, {hasSession = false, hasBreak = false} = {}) {
+			const pushSlice = function (date, {hasSession = false, hasBreak = false, hasStart = false} = {}) {
 				const name = getSliceName(date)
 				let slice = slicesLookup[name]
 				if (slice) {
 					slice.hasSession = slice.hasSession || hasSession
 					slice.hasBreak = slice.hasBreak || hasBreak
+					slice.hasStart = slice.hasStart || hasStart
 				} else {
 					slice = {
 						date,
 						name,
 						hasSession,
 						hasBreak,
+						hasStart,
 						datebreak: date.isSame(date.clone().startOf('day'))
 					}
 					slices.push(slice)
 					slicesLookup[name] = slice
 				}
 			}
-			const fillHalfHours = function (start, end, {hasSession, hasBreak} = {}) {
+			const fillHalfHours = function (start, end, {hasSession, hasBreak, hasStart} = {}) {
 				// fill to the nearest half hour, then each half hour, then fill to end
 				let mins = end.diff(start, 'minutes')
 				const startingMins = minimumSliceMins - start.minute() % minimumSliceMins
@@ -105,7 +107,7 @@ export default {
 
 				// last slice is actually just after the end of the session and has no session
 				const lastSlice = halfHourSlices.pop()
-				halfHourSlices.forEach(slice => pushSlice(slice, {hasSession, hasBreak}))
+				halfHourSlices.forEach(slice => pushSlice(slice, {hasSession, hasBreak, hasStart}))
 				pushSlice(lastSlice)
 			}
 			for (const session of this.sessions) {
@@ -119,10 +121,10 @@ export default {
 
 				const isProper = this.isProperSession(session)
 				// add start and end slices for the session itself
-				pushSlice(session.start, {hasSession: isProper, hasBreak: !isProper})
+				pushSlice(session.start, {hasSession: isProper, hasBreak: !isProper, hasStart: true})
 				pushSlice(session.end)
 				// add half hour slices between a session
-				fillHalfHours(session.start, session.end, {hasSession: isProper, hasBreak: !isProper})
+				fillHalfHours(session.start, session.end, {hasSession: isProper, hasBreak: !isProper, hasStart: false})
 			}
 
 			const sliceIsFraction = function (slice) {
@@ -133,7 +135,7 @@ export default {
 			const sliceShouldDisplay = function (slice, index) {
 				if (!slice) return
 				// keep slices with sessions or when changing dates
-				if (slice.hasSession || slice.datebreak) return true
+				if (slice.hasSession || slice.datebreak || slice.hasStart) return true
 				const prevSlice = slices[index - 1]
 				const nextSlice = slices[index + 1]
 				// keep last slice for a break
