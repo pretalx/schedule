@@ -180,6 +180,13 @@ export default {
 					}
 				}
 			}
+			// Only show dots if the gap slice is longer than 30 minutes
+			compactedSlices.forEach((slice, index) => {
+				if (slice.gap && index < compactedSlices.length - 1) {
+					const length = compactedSlices[index + 1].date - slice.date
+					if (length <= 1800000) slice.hideGapDots = true
+				}
+			})
 			// remove gap at the end of the schedule
 			if (compactedSlices[compactedSlices.length - 1].gap) compactedSlices.pop()
 			return compactedSlices
@@ -278,7 +285,7 @@ export default {
 		getSliceClasses (slice) {
 			return {
 				datebreak: slice.datebreak,
-				gap: slice.gap
+				gap: slice.gap && !slice.hideGapDots
 			}
 		},
 		getSliceStyle (slice) {
