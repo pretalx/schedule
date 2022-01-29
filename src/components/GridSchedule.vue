@@ -166,17 +166,17 @@ export default {
 				// and has no break
 				const prevSlice = slices[index - 1]
 				if (sliceShouldDisplay(prevSlice, index - 1)) {
-				  if (prevSlice.hasBreak && slice.hasBreak) {
-					  prevSlice.gap = true 
-				  } else if (!prevSlice.datebreak || slice.hasBreak) {
-					  // the gap after a break is always displayed, so we make sure not to double up
-					  const prevPrevSlice = slices[index - 2]
-					  if (prevPrevSlice.hasBreak && !slice.hasBreak && !prevSlice.hasBreak) {
-						  prevSlice.gap = true
-					  } else {
-						  slice.gap = true
-						  compactedSlices.push(slice)
-					  }
+					if (prevSlice.hasBreak && slice.hasBreak) {
+						prevSlice.gap = true
+					} else if (!prevSlice.datebreak || slice.hasBreak) {
+						// the gap after a break is always displayed, so we make sure not to double up
+						const prevPrevSlice = slices[index - 2]
+						if (prevPrevSlice.hasBreak && !slice.hasBreak && !prevSlice.hasBreak) {
+							prevSlice.gap = true
+						} else {
+							slice.gap = true
+							compactedSlices.push(slice)
+						}
 					}
 				}
 			}
