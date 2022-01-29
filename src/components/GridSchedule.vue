@@ -138,8 +138,8 @@ export default {
 				if (slice.hasSession || slice.datebreak || slice.hasStart) return true
 				const prevSlice = slices[index - 1]
 				const nextSlice = slices[index + 1]
-				// keep last slice for a break
-				if (slice.hasBreak && !nextSlice?.hasBreak && !nextSlice?.hasSession) return true
+				// keep first slice after a break break
+				if (!slice.hasBreak && prevSlice?.hasBreak) return true
 				// drop slices inside breaks
 				if (prevSlice?.hasBreak && slice.hasBreak) return false
 
@@ -168,9 +168,19 @@ export default {
 				// but only if it isn't the start of the day
 				// and has no break
 				const prevSlice = slices[index - 1]
-				if (sliceShouldDisplay(prevSlice, index - 1) && (!prevSlice.datebreak || slice.hasBreak)) {
-					slice.gap = true
-					compactedSlices.push(slice)
+				if (sliceShouldDisplay(prevSlice, index - 1)) {
+				  if (prevSlice.hasBreak && slice.hasBreak) {
+					  prevSlice.gap = true 
+				  } else if (!prevSlice.datebreak || slice.hasBreak) {
+					  // the gap after a break is always displayed, so we make sure not to double up
+					  const prevPrevSlice = slices[index - 2]
+					  if (prevPrevSlice.hasBreak && !slice.hasBreak && !prevSlice.hasBreak) {
+						  prevSlice.gap = true
+					  } else {
+						  slice.gap = true
+						  compactedSlices.push(slice)
+					  }
+					}
 				}
 			}
 			// remove gap at the end of the schedule
