@@ -150,9 +150,6 @@ export default {
 					((prevSlice?.hasSession || prevSlice?.hasBreak) && sliceIsFraction(prevSlice)) ||
 					((nextSlice?.hasSession || nextSlice?.hasBreak) && sliceIsFraction(nextSlice))
 				) return true
-				// show breaks which would not be gaps, all others are automatically gaps
-				// TODO check how breaks with gaps AROUND them would render
-				if (slice.hasBreak && !prevSlice?.hasBreak && sliceShouldDisplay(nextSlice, index + 1)) return true
 				return false
 			}
 
