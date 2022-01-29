@@ -66,13 +66,14 @@ export default {
 			const minimumSliceMins = 30
 			const slices = []
 			const slicesLookup = {}
-			const pushSlice = function (date, {hasSession = false, hasBreak = false, hasStart = false} = {}) {
+			const pushSlice = function (date, {hasSession = false, hasBreak = false, hasStart = false, hasEnd = false} = {}) {
 				const name = getSliceName(date)
 				let slice = slicesLookup[name]
 				if (slice) {
 					slice.hasSession = slice.hasSession || hasSession
 					slice.hasBreak = slice.hasBreak || hasBreak
 					slice.hasStart = slice.hasStart || hasStart
+					slice.hasEnd = slice.hasEnd || hasEnd
 				} else {
 					slice = {
 						date,
@@ -80,13 +81,14 @@ export default {
 						hasSession,
 						hasBreak,
 						hasStart,
+						hasEnd,
 						datebreak: date.isSame(date.clone().startOf('day'))
 					}
 					slices.push(slice)
 					slicesLookup[name] = slice
 				}
 			}
-			const fillHalfHours = function (start, end, {hasSession, hasBreak, hasStart} = {}) {
+			const fillHalfHours = function (start, end, {hasSession, hasBreak} = {}) {
 				// fill to the nearest half hour, then each half hour, then fill to end
 				let mins = end.diff(start, 'minutes')
 				const startingMins = minimumSliceMins - start.minute() % minimumSliceMins
@@ -107,7 +109,7 @@ export default {
 
 				// last slice is actually just after the end of the session and has no session
 				const lastSlice = halfHourSlices.pop()
-				halfHourSlices.forEach(slice => pushSlice(slice, {hasSession, hasBreak, hasStart}))
+				halfHourSlices.forEach(slice => pushSlice(slice, {hasSession, hasBreak}))
 				pushSlice(lastSlice)
 			}
 			for (const session of this.sessions) {
@@ -122,9 +124,9 @@ export default {
 				const isProper = this.isProperSession(session)
 				// add start and end slices for the session itself
 				pushSlice(session.start, {hasSession: isProper, hasBreak: !isProper, hasStart: true})
-				pushSlice(session.end)
+				pushSlice(session.end, {hasEnd: true})
 				// add half hour slices between a session
-				fillHalfHours(session.start, session.end, {hasSession: isProper, hasBreak: !isProper, hasStart: false})
+				fillHalfHours(session.start, session.end, {hasSession: isProper, hasBreak: !isProper})
 			}
 
 			const sliceIsFraction = function (slice) {
@@ -134,22 +136,21 @@ export default {
 
 			const sliceShouldDisplay = function (slice, index) {
 				if (!slice) return
-				// keep slices with sessions or when changing dates
-				if (slice.hasSession || slice.datebreak || slice.hasStart) return true
+				// keep slices with sessions or when changing dates, or when sessions start or immediately after they end
+				if (slice.hasSession || slice.datebreak || slice.hasStart || slice.hasEnd) return true
 				const prevSlice = slices[index - 1]
 				const nextSlice = slices[index + 1]
-				// keep first slice after a break break
-				if (!slice.hasBreak && prevSlice?.hasBreak) return true
-				// drop slices inside breaks
-				if (prevSlice?.hasBreak && slice.hasBreak) return false
 
 				// keep non-whole slices
 				if (sliceIsFraction(slice)) return true
 				// keep slices before and after non-whole slices, if by session or break
 				if (
-					((prevSlice?.hasSession || prevSlice?.hasBreak) && sliceIsFraction(prevSlice)) ||
-					((nextSlice?.hasSession || nextSlice?.hasBreak) && sliceIsFraction(nextSlice))
+					((prevSlice?.hasSession || prevSlice?.hasBreak || prevSlice?.hasEnd) && sliceIsFraction(prevSlice)) ||
+					((nextSlice?.hasSession || nextSlice?.hasBreak) && sliceIsFraction(nextSlice)) ||
+					((!nextSlice?.hasSession || !nextSlice?.hasBreak) && (slice.hasSession || slice.hasBreak) && sliceIsFraction(nextSlice))
 				) return true
+				// but drop slices inside breaks
+				if (prevSlice?.hasBreak && slice.hasBreak) return false
 				return false
 			}
 
@@ -161,23 +162,11 @@ export default {
 					compactedSlices.push(slice)
 					continue
 				}
-				// insert a gap slice if it would be the first to be removed
+				// make the previous slice a gap slice if this one would be the first to be removed
 				// but only if it isn't the start of the day
-				// and has no break
 				const prevSlice = slices[index - 1]
-				if (sliceShouldDisplay(prevSlice, index - 1)) {
-					if (prevSlice.hasBreak && slice.hasBreak) {
-						prevSlice.gap = true
-					} else if (!prevSlice.datebreak || slice.hasBreak) {
-						// the gap after a break is always displayed, so we make sure not to double up
-						const prevPrevSlice = slices[index - 2]
-						if (prevPrevSlice.hasBreak && !slice.hasBreak && !prevSlice.hasBreak) {
-							prevSlice.gap = true
-						} else {
-							slice.gap = true
-							compactedSlices.push(slice)
-						}
-					}
+				if (sliceShouldDisplay(prevSlice, index - 1) && !prevSlice.datebreak) {
+					prevSlice.gap = true
 				}
 			}
 			// Only show dots if the gap slice is longer than 30 minutes
