@@ -9,7 +9,7 @@ export function getLocalizedString (string) {
 const checkPropScrolling = (node, prop) => ['auto', 'scroll'].includes(getComputedStyle(node, null).getPropertyValue(prop))
 const isScrolling = node => checkPropScrolling(node, 'overflow') || checkPropScrolling(node, 'overflow-x') || checkPropScrolling(node, 'overflow-y')
 export function findScrollParent (node) {
-	if (!node || node === document) return
+	if (!node || node === document.body) return
 	if (isScrolling(node)) return node
 	return findScrollParent(node.parentNode)
 }
