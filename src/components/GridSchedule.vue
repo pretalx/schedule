@@ -324,7 +324,7 @@ export default {
 		min-width: min-content
 		> .room
 			position: sticky
-			top: 48px
+			top: calc(48px + var(--pretalx-sticky-top-offset))
 			display: flex
 			justify-content: center
 			align-items: center

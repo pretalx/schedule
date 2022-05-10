@@ -293,7 +293,7 @@ export default {
 		tabs-style(active-color: var(--pretalx-clr-primary), indicator-color: var(--pretalx-clr-primary), background-color: transparent)
 		overflow-x: auto
 		position: sticky
-		top: 0
+		top: var(--pretalx-sticky-top-offset)
 		left: 0
 		margin-bottom: 0
 		flex: none
