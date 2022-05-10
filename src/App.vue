@@ -159,6 +159,7 @@ export default {
 		this.schedule = await (await fetch(url)).json()
 		this.currentTimezone = localStorage.getItem(`${this.eventSlug}_timezone`)
 		this.currentTimezone = [this.schedule.timezone, this.userTimezone].includes(this.currentTimezone) ? this.currentTimezone : this.schedule.timezone
+		this.currentDay = this.days[0]
 		this.now = moment().tz(this.currentTimezone)
 		setInterval(() => this.now = moment().tz(this.currentTimezone), 30000)
 		if (!this.scrollParentResizeObserver) {
@@ -175,8 +176,6 @@ export default {
 			if (filteredDays.length) {
 				this.currentDay = filteredDays[0]
 			}
-		} else {
-			window.location.hash = '0'
 		}
 	},
 	async mounted () {
@@ -205,11 +204,7 @@ export default {
 		changeDay (day) {
 			if (day.isSame(this.currentDay)) return
 			this.currentDay = moment(day, this.currentTimezone).startOf('day')
-			if (window.location.hash === '#0') {
-				window.location.hash = ''
-			} else {
-				window.location.hash = day.format('YYYY-MM-DD')
-			}
+			window.location.hash = day.format('YYYY-MM-DD')
 		},
 		onWindowResize () {
 			this.scrollParentWidth = document.body.offsetWidth
