@@ -298,10 +298,9 @@ export default {
 		margin-bottom: 0
 		flex: none
 		min-width: 0
+		max-width: var(--schedule-max-width)
 		height: 48px
 		z-index: 30
-		&.grid-tabs
-			width: var(--schedule-max-width)
 		.bunt-tabs-header
 			min-width: min-content
 		.bunt-tabs-header-items
