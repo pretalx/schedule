@@ -101,7 +101,7 @@ export default {
 		sessions () {
 			if (!this.schedule || !this.currentTimezone) return
 			const sessions = []
-			for (const session of this.schedule.talks) {
+			for (const session of this.schedule.talks.filter(s => s.start)) {
 				if (this.onlyFavs && !this.favs.includes(session.code)) continue
 				sessions.push({
 					id: session.code,
