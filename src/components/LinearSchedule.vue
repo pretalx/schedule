@@ -4,16 +4,20 @@
 		.bucket-label(:ref="getBucketName(date)", :data-date="date.format()")
 			.day(v-if="index === 0 || date.clone().startOf('day').diff(sessionBuckets[index - 1].date.clone().startOf('day'), 'day') > 0")  {{ date.format('dddd DD. MMMM') }}
 			.time {{ date.format('LT') }}
-		session(
-			v-for="session of sessions",
-			:session="session",
-			:faved="session.id && favs.includes(session.id)",
-			@fav="$emit('fav', session.id)",
-			@unfav="$emit('unfav', session.id)"
-		)
+			template(v-for="session of sessions")
+				session(
+					v-if="isProperSession(session)",
+					:session="session",
+					:faved="session.id && favs.includes(session.id)",
+					@fav="$emit('fav', session.id)",
+					@unfav="$emit('unfav', session.id)"
+				)
+				.break(v-else)
+					.title {{ getLocalizedString(session.title) }}
 </template>
 <script>
 import moment from 'moment-timezone'
+import { getLocalizedString } from 'utils'
 import Session from './Session'
 
 export default {
@@ -33,18 +37,25 @@ export default {
 	data () {
 		return {
 			moment,
+			getLocalizedString,
 			scrolledDay: null
 		}
 	},
 	computed: {
 		sessionBuckets () {
 			const buckets = {}
-			for (const session of this.sessions.filter(s => s.id)) {
+			for (const session of this.sessions) {
 				const key = session.start.format()
 				if (!buckets[key]) {
 					buckets[key] = []
 				}
-				buckets[key].push(session)
+				if (!session.id) {
+					// Remove duplicate breaks, meaning same start, end and text
+					session.break_id = `${session.start}${session.end}${session.title}`
+					if (buckets[key].filter(s => s.break_id === session.break_id).length === 0) buckets[key].push(session)
+				} else {
+					buckets[key].push(session)
+				}
 			}
 			return Object.entries(buckets).map(([date, sessions]) => ({date: sessions[0].start, sessions}))
 		}
@@ -90,6 +101,10 @@ export default {
 		}
 	},
 	methods: {
+		isProperSession (session) {
+			// breaks and such don't have ids
+			return !!session.id
+		},
 		getBucketName (date) {
 			return `bucket-${date.format('YYYY-MM-DD-HH-mm')}`
 		},
@@ -136,4 +151,17 @@ export default {
 			font-weight: 500
 			color: $clr-secondary-text-light
 			padding-left: 16px
+		.break
+			z-index: 10
+			margin: 8px
+			padding: 8px
+			border-radius: 4px
+			background-color: $clr-grey-200
+			display: flex
+			justify-content: center
+			align-items: center
+			.title
+				font-size: 20px
+				font-weight: 500
+				color: $clr-secondary-text-light
 </style>
