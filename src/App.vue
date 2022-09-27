@@ -6,6 +6,7 @@
 				h3 Tracks
 				.checkbox-line(v-for="track in allTracks", :key="track.value", :style="{'--track-color': track.color}")
 					bunt-checkbox(type="checkbox", :label="track.label", :name="track.value + track.label", v-model="track.selected", :value="track.value", @input="onlyFavs = false")
+					.track-description(v-if="getLocalizedString(track.description).length") {{ getLocalizedString(track.description) }}
 		.settings
 			template(v-if="!inEventTimezone")
 				bunt-select(name="timezone", :options="[{id: schedule.timezone, label: schedule.timezone}, {id: userTimezone, label: userTimezone}]", v-model="currentTimezone", @blur="saveTimezone")
@@ -309,6 +310,9 @@ export default {
 				.bunt-checkbox.checked .bunt-checkbox-box
 					background-color: var(--track-color)
 					border-color: var(--track-color)
+				.track-description
+					color: $clr-grey-600
+					margin-left: 32px
 	.settings
 		margin-left: 18px
 		align-self: flex-start
