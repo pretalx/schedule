@@ -17,7 +17,7 @@
 			bunt-tab(v-for="day in days", :id="day.format()", :header="day.format(dateFormat)", @selected="changeDay(day)")
 		grid-schedule(v-if="showGrid",
 			:sessions="sessions",
-			:rooms="schedule.rooms",
+			:rooms="rooms",
 			:currentDay="currentDay",
 			:now="now",
 			:scrollParent="scrollParent",
@@ -116,6 +116,9 @@ export default {
 			}
 			sessions.sort((a, b) => a.start.diff(b.start))
 			return sessions
+		},
+		rooms () {
+			return this.schedule.rooms.filter(r => this.sessions.some(s => s.room === r))
 		},
 		days () {
 			if (!this.sessions) return
