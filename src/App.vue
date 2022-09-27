@@ -1,12 +1,23 @@
 <template lang="pug">
 .pretalx-schedule(:style="{'--scrollparent-width': scrollParentWidth + 'px', '--schedule-max-width': scheduleMaxWidth + 'px'}", :class="showGrid ? ['grid-schedule'] : ['list-schedule']")
 	template(v-if="schedule && sessions")
+		.modal-overlay(v-if="showFilterModal", @click.stop="showFilterModal = false")
+			.modal-box(@click.stop="")
+				h3 Tracks
+				.checkbox-line(v-for="track in allTracks", :key="track.value", :style="{'--track-color': track.color}")
+					bunt-checkbox(type="checkbox", :label="track.label", :name="track.value + track.label", v-model="track.selected", :value="track.value", @input="onlyFavs = false")
 		.settings
 			template(v-if="!inEventTimezone")
 				bunt-select(name="timezone", :options="[{id: schedule.timezone, label: schedule.timezone}, {id: userTimezone, label: userTimezone}]", v-model="currentTimezone", @blur="saveTimezone")
 			template(v-else)
 				div.timezone-label.bunt-tab-header-item(v-html="schedule.timezone")
-			bunt-button.fav-toggle(v-if="favs.length", @click="onlyFavs = !onlyFavs", :class="onlyFavs ? ['active'] : []")
+			bunt-button.filter-tracks(v-if="this.schedule.tracks.length", @click="showFilterModal=true")
+				svg#filter(viewBox="0 0 752 752")
+					path(d="m401.57 264.71h-174.75c-6.6289 0-11.84 5.2109-11.84 11.84 0 6.6289 5.2109 11.84 11.84 11.84h174.75c5.2109 17.523 21.312 30.309 40.727 30.309 18.941 0 35.52-12.785 40.254-30.309h43.098c6.6289 0 11.84-5.2109 11.84-11.84 0-6.6289-5.2109-11.84-11.84-11.84h-43.098c-5.2109-17.523-21.312-30.309-40.254-30.309-19.414 0-35.516 12.785-40.727 30.309zm58.723 11.84c0 10.418-8.5234 18.469-18.469 18.469s-18.469-8.0508-18.469-18.469 8.5234-18.469 18.469-18.469c9.4727-0.003906 18.469 8.0469 18.469 18.469z")
+					path(d="m259.5 359.43h-32.676c-6.6289 0-11.84 5.2109-11.84 11.84s5.2109 11.84 11.84 11.84h32.676c5.2109 17.523 21.312 30.309 40.727 30.309 18.941 0 35.52-12.785 40.254-30.309h185.17c6.6289 0 11.84-5.2109 11.84-11.84s-5.2109-11.84-11.84-11.84h-185.17c-5.2109-17.523-21.312-30.309-40.254-30.309-19.418 0-35.52 12.785-40.73 30.309zm58.723 11.84c0 10.418-8.5234 18.469-18.469 18.469-9.9453 0-18.469-8.0508-18.469-18.469s8.5234-18.469 18.469-18.469c9.9453 0 18.469 8.0508 18.469 18.469z")
+					path(d="m344.75 463.61h-117.92c-6.6289 0-11.84 5.2109-11.84 11.84s5.2109 11.84 11.84 11.84h117.92c5.2109 17.523 21.312 30.309 40.727 30.309 18.941 0 35.52-12.785 40.254-30.309h99.926c6.6289 0 11.84-5.2109 11.84-11.84s-5.2109-11.84-11.84-11.84h-99.926c-5.2109-17.523-21.312-30.309-40.254-30.309-19.418 0-35.52 12.785-40.727 30.309zm58.723 11.84c0 10.418-8.5234 18.469-18.469 18.469s-18.469-8.0508-18.469-18.469 8.5234-18.469 18.469-18.469 18.469 8.0508 18.469 18.469z")
+				template(v-if="filteredTracks.length") {{ filteredTracks.length }}
+			bunt-button.fav-toggle(v-if="favs.length", @click="onlyFavs = !onlyFavs; if (onlyFavs) resetFilteredTracks()", :class="onlyFavs ? ['active'] : []")
 				svg#star(viewBox="0 0 24 24")
 					polygon(
 						:style="{fill: '#FFA000', stroke: '#FFA000'}"
@@ -42,7 +53,7 @@ import Buntpapier from 'buntpapier'
 import moment from 'moment-timezone'
 import LinearSchedule from 'components/LinearSchedule'
 import GridSchedule from 'components/GridSchedule'
-import { findScrollParent } from 'utils'
+import { findScrollParent, getLocalizedString } from 'utils'
 
 Vue.use(Buntpapier)
 
@@ -69,13 +80,16 @@ export default {
 	data () {
 		return {
 			moment,
+			getLocalizedString,
 			scrollParentWidth: Infinity,
 			schedule: null,
 			userTimezone: null,
 			now: moment(),
 			currentDay: null,
 			currentTimezone: null,
+			showFilterModal: false,
 			favs: [],
+			allTracks: [],
 			onlyFavs: false
 		}
 	},
@@ -94,6 +108,9 @@ export default {
 			if (!this.schedule) return {}
 			return this.schedule.tracks.reduce((acc, t) => { acc[t.id] = t; return acc }, {})
 		},
+		filteredTracks () {
+			return this.allTracks.filter(t => t.selected)
+		},
 		speakersLookup () {
 			if (!this.schedule) return {}
 			return this.schedule.speakers.reduce((acc, s) => { acc[s.code] = s; return acc }, {})
@@ -103,6 +120,7 @@ export default {
 			const sessions = []
 			for (const session of this.schedule.talks.filter(s => s.start)) {
 				if (this.onlyFavs && !this.favs.includes(session.code)) continue
+				if (this.filteredTracks && this.filteredTracks.length && !this.filteredTracks.find(t => t.id === session.track)) continue
 				sessions.push({
 					id: session.code,
 					title: session.title,
@@ -169,6 +187,7 @@ export default {
 			await this.$nextTick()
 			this.onWindowResize()
 		}
+		this.schedule.tracks.forEach(t => {t.value = t.id; t.label = getLocalizedString(t.name); this.allTracks.push(t)})
 		this.favs = this.pruneFavs(this.loadFavs(), this.schedule)
 
 		const fragment = window.location.hash.slice(1)
@@ -247,6 +266,9 @@ export default {
 			this.favs = this.favs.filter(elem => elem !== id)
 			this.saveFavs()
 			if (!this.favs.length) this.onlyFavs = false
+		},
+		resetFilteredTracks () {
+			this.allTracks.forEach(t => t.selected = false)
 		}
 	}
 }
@@ -265,6 +287,28 @@ export default {
 		margin: 0 auto
 	&.list-schedule
 		min-width: 0
+	.modal-overlay
+		position: fixed
+		z-index: 1000
+		top: 0
+		left: 0
+		width: 100%
+		height: 100%
+		background-color: rgba(0,0,0,0.4)
+		.modal-box
+			width: 600px
+			max-width: calc(95% - 64px)
+			border-radius: 32px
+			padding: 4px 32px
+			margin-top: 32px
+			background: white
+			margin-left: auto
+			margin-right: auto
+			.checkbox-line
+				margin: 16px 8px
+				.bunt-checkbox.checked .bunt-checkbox-box
+					background-color: var(--track-color)
+					border-color: var(--track-color)
 	.settings
 		margin-left: 18px
 		align-self: flex-start
@@ -284,6 +328,16 @@ export default {
 			svg
 				width: 20px
 				height: 20px
+				margin-right: 6px
+		.filter-tracks
+			margin-right: 8px
+			display: flex
+			.bunt-button-text
+				display: flex
+				align-items: center
+			svg
+				width: 36px
+				height: 36px
 				margin-right: 6px
 		.bunt-select
 			max-width: 300px
