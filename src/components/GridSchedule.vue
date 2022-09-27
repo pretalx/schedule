@@ -10,6 +10,7 @@
 				path(d="M 0 0 L 10 5 L 0 10 z")
 		.room(:style="{'grid-area': `1 / 1 / auto / auto`}")
 		.room(v-for="(room, index) of rooms", :style="{'grid-area': `1 / ${index + 2 } / auto / auto`}") {{ getLocalizedString(room.name) }}
+			bunt-button.room-description(v-if="getLocalizedString(room.description)", :tooltip="getLocalizedString(room.description)", tooltip-placement="bottom") ?
 		.room(v-if="hasSessionsWithoutRoom", :style="{'grid-area': `1 / ${rooms.length + 2} / auto / -1`}") no location
 		template(v-for="session of sessions")
 			session(
@@ -332,6 +333,20 @@ export default {
 			background-color: $clr-white
 			border-bottom: border-separator()
 			z-index: 20
+			.room-description
+				border: 2px solid $clr-grey-400
+				border-radius: 100%
+				height: 20px
+				width: 20px
+				padding: 0
+				font-weight: bold
+				min-width: 0
+				button-style(color: $clr-white, text-color: $clr-grey-500)
+				margin-left: 8px
+				.bunt-tooltip
+					height: auto
+					width: 200px
+					white-space: normal
 		.c-linear-schedule-session
 			z-index: 10
 		.break
