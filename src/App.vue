@@ -8,16 +8,13 @@
 					bunt-checkbox(type="checkbox", :label="track.label", :name="track.value + track.label", v-model="track.selected", :value="track.value", @input="onlyFavs = false")
 					.track-description(v-if="getLocalizedString(track.description).length") {{ getLocalizedString(track.description) }}
 		.settings
-			template(v-if="!inEventTimezone")
-				bunt-select(name="timezone", :options="[{id: schedule.timezone, label: schedule.timezone}, {id: userTimezone, label: userTimezone}]", v-model="currentTimezone", @blur="saveTimezone")
-			template(v-else)
-				div.timezone-label.bunt-tab-header-item(v-html="schedule.timezone")
 			bunt-button.filter-tracks(v-if="this.schedule.tracks.length", @click="showFilterModal=true")
 				svg#filter(viewBox="0 0 752 752")
 					path(d="m401.57 264.71h-174.75c-6.6289 0-11.84 5.2109-11.84 11.84 0 6.6289 5.2109 11.84 11.84 11.84h174.75c5.2109 17.523 21.312 30.309 40.727 30.309 18.941 0 35.52-12.785 40.254-30.309h43.098c6.6289 0 11.84-5.2109 11.84-11.84 0-6.6289-5.2109-11.84-11.84-11.84h-43.098c-5.2109-17.523-21.312-30.309-40.254-30.309-19.414 0-35.516 12.785-40.727 30.309zm58.723 11.84c0 10.418-8.5234 18.469-18.469 18.469s-18.469-8.0508-18.469-18.469 8.5234-18.469 18.469-18.469c9.4727-0.003906 18.469 8.0469 18.469 18.469z")
 					path(d="m259.5 359.43h-32.676c-6.6289 0-11.84 5.2109-11.84 11.84s5.2109 11.84 11.84 11.84h32.676c5.2109 17.523 21.312 30.309 40.727 30.309 18.941 0 35.52-12.785 40.254-30.309h185.17c6.6289 0 11.84-5.2109 11.84-11.84s-5.2109-11.84-11.84-11.84h-185.17c-5.2109-17.523-21.312-30.309-40.254-30.309-19.418 0-35.52 12.785-40.73 30.309zm58.723 11.84c0 10.418-8.5234 18.469-18.469 18.469-9.9453 0-18.469-8.0508-18.469-18.469s8.5234-18.469 18.469-18.469c9.9453 0 18.469 8.0508 18.469 18.469z")
 					path(d="m344.75 463.61h-117.92c-6.6289 0-11.84 5.2109-11.84 11.84s5.2109 11.84 11.84 11.84h117.92c5.2109 17.523 21.312 30.309 40.727 30.309 18.941 0 35.52-12.785 40.254-30.309h99.926c6.6289 0 11.84-5.2109 11.84-11.84s-5.2109-11.84-11.84-11.84h-99.926c-5.2109-17.523-21.312-30.309-40.254-30.309-19.418 0-35.52 12.785-40.727 30.309zm58.723 11.84c0 10.418-8.5234 18.469-18.469 18.469s-18.469-8.0508-18.469-18.469 8.5234-18.469 18.469-18.469 18.469 8.0508 18.469 18.469z")
-				template(v-if="filteredTracks.length") {{ filteredTracks.length }}
+				template Filter
+				template(v-if="filteredTracks.length") ({{ filteredTracks.length }})
 			bunt-button.fav-toggle(v-if="favs.length", @click="onlyFavs = !onlyFavs; if (onlyFavs) resetFilteredTracks()", :class="onlyFavs ? ['active'] : []")
 				svg#star(viewBox="0 0 24 24")
 					polygon(
@@ -25,6 +22,10 @@
 						points="14.43,10 12,2 9.57,10 2,10 8.18,14.41 5.83,22 12,17.31 18.18,22 15.83,14.41 22,10"
 					)
 				template {{ favs.length }}
+			template(v-if="!inEventTimezone")
+				bunt-select(name="timezone", :options="[{id: schedule.timezone, label: schedule.timezone}, {id: userTimezone, label: userTimezone}]", v-model="currentTimezone", @blur="saveTimezone")
+			template(v-else)
+				div.timezone-label.bunt-tab-header-item(v-html="schedule.timezone")
 		bunt-tabs.days(v-if="days && days.length > 1", :active-tab="currentDay && currentDay.format()", ref="tabs" :class="showGrid? ['grid-tabs'] : ['list-tabs']")
 			bunt-tab(v-for="day in days", :id="day.format()", :header="day.format(dateFormat)", @selected="changeDay(day)")
 		grid-schedule(v-if="showGrid",
@@ -188,7 +189,7 @@ export default {
 			await this.$nextTick()
 			this.onWindowResize()
 		}
-		this.schedule.tracks.forEach(t => {t.value = t.id; t.label = getLocalizedString(t.name); this.allTracks.push(t)})
+		this.schedule.tracks.forEach(t => { t.value = t.id; t.label = getLocalizedString(t.name); this.allTracks.push(t) })
 		this.favs = this.pruneFavs(this.loadFavs(), this.schedule)
 
 		const fragment = window.location.hash.slice(1)
@@ -321,6 +322,7 @@ export default {
 		position: sticky
 		z-index: 100
 		left: 18px
+		width: 100%
 		.fav-toggle
 			margin-right: 8px
 			display: flex
@@ -339,6 +341,7 @@ export default {
 			.bunt-button-text
 				display: flex
 				align-items: center
+				padding-right: 8px
 			svg
 				width: 36px
 				height: 36px
@@ -349,6 +352,8 @@ export default {
 		.timezone-label
 			cursor: default
 			color: $clr-secondary-text-light
+		.bunt-select, .timezone-label
+			margin-left: auto
 	.days
 		background-color: $clr-white
 		tabs-style(active-color: var(--pretalx-clr-primary), indicator-color: var(--pretalx-clr-primary), background-color: transparent)
