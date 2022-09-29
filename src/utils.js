@@ -2,7 +2,7 @@
 
 export function getLocalizedString (string) {
 	if (typeof string === 'string') return string
-	return Object.values(string)[0]
+	return Object.values(string)[0] || ''
 	// return string[i18n.locale] || string[i18n.fallbackLocale] || Object.values(string)[0]
 }
 
