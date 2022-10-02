@@ -4,7 +4,6 @@
 		template(v-for="slice of visibleTimeslices")
 			.timeslice(:ref="slice.name", :class="getSliceClasses(slice)", :data-slice="slice.date.format()", :style="getSliceStyle(slice)") {{ getSliceLabel(slice) }}
 			.timeline(:class="getSliceClasses(slice)", :style="getSliceStyle(slice)")
-		//- .nowline(v-if="nowSlice", :style="{'grid-area': `${nowSlice.slice.name} / 1 / auto / auto`, '--offset': nowSlice.offset}")
 		.now(v-if="nowSlice", ref="now", :class="{'on-daybreak': nowSlice.onDaybreak}", :style="{'grid-area': `${nowSlice.slice.name} / 1 / auto / auto`, '--offset': nowSlice.offset}")
 			svg(viewBox="0 0 10 10")
 				path(d="M 0 0 L 10 5 L 0 10 z")
@@ -394,16 +393,9 @@ export default {
 		height: 1px
 		background-color: $clr-dividers-light
 		position: absolute
-		// transform: translate(-16px, -8px)
 		width: 100%
 		&.datebreak
 			height: 3px
-	.nowline
-		height: 2px
-		background-color: $clr-red
-		position: absolute
-		transform: translate(0, calc(var(--offset) * 100%))
-		width: 100%
 	.now
 		margin-left: 2px
 		z-index: 20
