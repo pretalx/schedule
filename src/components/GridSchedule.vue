@@ -397,9 +397,9 @@ export default {
 		&.datebreak
 			height: 3px
 	.now
-		margin-left: 2px
 		z-index: 20
-		position: relative
+		position: sticky
+		left: 2px
 		&::before
 			content: ''
 			display: block
