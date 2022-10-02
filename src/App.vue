@@ -322,7 +322,7 @@ export default {
 		position: sticky
 		z-index: 100
 		left: 18px
-		width: 100%
+		width: calc(100vw - 36px)
 		.fav-toggle
 			margin-right: 8px
 			display: flex
