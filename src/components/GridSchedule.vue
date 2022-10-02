@@ -377,7 +377,6 @@ export default {
 			border-top: 3px solid $clr-dividers-light
 			white-space: pre
 		&.gap
-			position: relative
 			&::before
 				content: ''
 				display: block
