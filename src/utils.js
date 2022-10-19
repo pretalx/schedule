@@ -2,8 +2,8 @@
 
 export function getLocalizedString (string) {
 	if (typeof string === 'string') return string
-	return Object.values(string)[0] || ''
-	// return string[i18n.locale] || string[i18n.fallbackLocale] || Object.values(string)[0]
+	const lang = document.querySelector('html').lang || 'en'
+	return string[lang] || string.en || Object.values(string)[0] || ''
 }
 
 const checkPropScrolling = (node, prop) => ['auto', 'scroll'].includes(getComputedStyle(node, null).getPropertyValue(prop))
