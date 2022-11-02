@@ -1,6 +1,7 @@
 // import i18n from 'i18n'
 
 export function getLocalizedString (string) {
+	if (!string) return ''
 	if (typeof string === 'string') return string
 	const lang = document.querySelector('html').lang || 'en'
 	return string[lang] || string.en || Object.values(string)[0] || ''
