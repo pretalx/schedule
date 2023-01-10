@@ -22,6 +22,7 @@
 						points="14.43,10 12,2 9.57,10 2,10 8.18,14.41 5.83,22 12,17.31 18.18,22 15.83,14.41 22,10"
 					)
 				template {{ favs.length }}
+			bunt-button(@click="toggleAudioPlayer") {{ audioPlayer ? 'Stop' : 'Play' }}
 			template(v-if="!inEventTimezone")
 				bunt-select(name="timezone", :options="[{id: schedule.timezone, label: schedule.timezone}, {id: userTimezone, label: userTimezone}]", v-model="currentTimezone", @blur="saveTimezone")
 			template(v-else)
@@ -55,6 +56,7 @@ import Buntpapier from 'buntpapier'
 import moment from 'moment-timezone'
 import LinearSchedule from 'components/LinearSchedule'
 import GridSchedule from 'components/GridSchedule'
+import { SchedulePlayer } from './audio'
 import { findScrollParent, getLocalizedString } from 'utils'
 
 Vue.use(Buntpapier)
@@ -92,7 +94,8 @@ export default {
 			showFilterModal: false,
 			favs: [],
 			allTracks: [],
-			onlyFavs: false
+			onlyFavs: false,
+			audioPlayer: null
 		}
 	},
 	computed: {
@@ -271,6 +274,16 @@ export default {
 		},
 		resetFilteredTracks () {
 			this.allTracks.forEach(t => t.selected = false)
+		},
+		toggleAudioPlayer () {
+			// TODO: pass in the schedule?
+			if (this.audioPlayer) {
+				this.audioPlayer.stop()
+				this.audioPlayer = null
+			} else {
+				this.audioPlayer = new SchedulePlayer()
+				this.audioPlayer.start()
+			}
 		}
 	}
 }
