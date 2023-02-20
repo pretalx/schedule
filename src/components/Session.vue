@@ -5,6 +5,8 @@ a.c-linear-schedule-session(:class="{faved}", :style="style", :href="link", @cli
 			.time {{ startTime.time }}
 			.ampm(v-if="startTime.ampm") {{ startTime.ampm }}
 		.duration {{ durationPretty }}
+		.buffer
+		.is-live(v-if="isLive") live
 	.info
 		.title {{ getLocalizedString(session.title) }}
 		.speakers(v-if="session.speakers")
@@ -103,6 +105,9 @@ export default {
 			}
 			return `${hours}h`
 		},
+		isLive () {
+			return moment(this.session.start).isBefore(this.now) && moment(this.session.end).isAfter(this.now)
+		},
 		abstract () {
 			try {
 				return markdownIt.renderInline(this.session.abstract)
@@ -146,6 +151,19 @@ export default {
 				font-size: 13px
 		.duration
 			color: $clr-secondary-text-dark
+		.buffer
+			flex: auto
+		.is-live
+			align-self: stretch
+			text-align: center
+			font-weight: 600
+			padding: 2px 4px
+			border-radius: 4px
+			margin: 0 -10px 0 -6px // HACK
+			background-color: $clr-danger
+			color: $clr-primary-text-dark
+			letter-spacing: 0.5px
+			text-transform: uppercase
 	.info
 		flex: auto
 		display: flex
