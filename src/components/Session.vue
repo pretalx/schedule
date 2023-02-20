@@ -7,7 +7,11 @@ a.c-linear-schedule-session(:class="{faved}", :style="style", :href="link", @cli
 		.duration {{ durationPretty }}
 	.info
 		.title {{ getLocalizedString(session.title) }}
-		.speakers(v-if="session.speakers") {{ session.speakers.map(s => s.name).join(', ') }}
+		.speakers(v-if="session.speakers")
+			.avatars
+				template(v-for="speaker of session.speakers")
+					img(v-if="speaker.avatar", :src="speaker.avatar")
+			.names {{ session.speakers.map(s => s.name).join(', ') }}
 		.abstract(v-if="showAbstract", v-html="abstract")
 		.bottom-info
 			.track(v-if="session.track") {{ getLocalizedString(session.track.name) }}
@@ -158,6 +162,20 @@ export default {
 			margin-bottom: 4px
 		.speakers
 			color: $clr-secondary-text-light
+			display: flex
+			.avatars
+				flex: none
+				> *:not(:first-child)
+					margin-left: -20px
+				img
+					background-color: $clr-white
+					border-radius: 50%
+					height: 24px
+					width: @height
+					margin: 0 8px 0 0
+					object-fit: cover
+			.names
+				line-height: 24px
 		.abstract
 			margin: 8px 0 12px 0
 			// TODO make this take up more space if available?
