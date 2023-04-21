@@ -100,7 +100,9 @@ export default {
 			return this.schedule ? Math.min(this.scrollParentWidth, 78 + this.schedule.rooms.length * 650) : this.scrollParentWidth
 		},
 		showGrid () {
-			return this.scrollParentWidth > 710 && this.format !== 'list' // if we can't fit two rooms together, switch to list
+			// if we can't fit all the rooms together, switch to list
+			const minimalRequiredWidth = 78 + ((this.schedule?.rooms.length ?? 0) * 316)
+			return this.scrollParentWidth > minimalRequiredWidth && this.format !== 'list'
 		},
 		roomsLookup () {
 			if (!this.schedule) return {}
