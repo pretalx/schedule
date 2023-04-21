@@ -187,10 +187,6 @@ export default {
 		this.currentDay = this.days[0]
 		this.now = moment().tz(this.currentTimezone)
 		setInterval(() => this.now = moment().tz(this.currentTimezone), 30000)
-		if (!this.scrollParentResizeObserver) {
-			await this.$nextTick()
-			this.onWindowResize()
-		}
 		this.schedule.tracks.forEach(t => { t.value = t.id; t.label = getLocalizedString(t.name); this.allTracks.push(t) })
 		this.favs = this.pruneFavs(this.loadFavs(), this.schedule)
 
@@ -213,15 +209,11 @@ export default {
 			}
 			poll()
 		})
-		this.scrollParent = findScrollParent(this.$el.parentElement || this.$el.getRootNode().host)
-		if (this.scrollParent) {
-			this.scrollParentResizeObserver = new ResizeObserver(this.onScrollParentResize)
-			this.scrollParentResizeObserver.observe(this.scrollParent)
-			this.scrollParentWidth = this.scrollParent.offsetWidth
-		} else { // scrolling document
-			window.addEventListener('resize', this.onWindowResize)
-			this.onWindowResize()
-		}
+		const parent = this.$el.parentElement ?? this.$el.getRootNode().host
+		this.scrollParent = findScrollParent(parent) ?? parent ?? document.body
+		this.scrollParentResizeObserver = new ResizeObserver(this.onScrollParentResize)
+		this.scrollParentResizeObserver.observe(this.scrollParent)
+		this.scrollParentWidth = this.scrollParent.offsetWidth
 	},
 	destroyed () {
 		// TODO destroy observers
@@ -231,9 +223,6 @@ export default {
 			if (day.isSame(this.currentDay)) return
 			this.currentDay = moment(day, this.currentTimezone).startOf('day')
 			window.location.hash = day.format('YYYY-MM-DD')
-		},
-		onWindowResize () {
-			this.scrollParentWidth = document.body.offsetWidth
 		},
 		saveTimezone () {
 			localStorage.setItem(`${this.eventSlug}_timezone`, this.currentTimezone)
