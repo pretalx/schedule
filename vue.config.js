@@ -45,7 +45,8 @@ module.exports = {
 			}
 		}
 	},
-	lintOnSave: true
+	lintOnSave: true,
+	productionSourceMap: false
 }
 
 if (process.env.ANALYZE) {
