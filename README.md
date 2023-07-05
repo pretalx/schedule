@@ -16,11 +16,12 @@ npm run build
 ```
 
 ### Build for pretalx (web component)
-```
-npm run build:wc
-```
 
-Then copy ``dist/*js`` to ``src/pretalx/static/agenda/js/`` in pretalx.
+Make sure the `schedule` and `pretalx` repositories share a root directory, then simply run
+
+```
+./update.sh
+```
 
 ### Release library to npm
 
