@@ -151,6 +151,8 @@ export default {
 			font-weight: 500
 			color: $clr-secondary-text-light
 			padding-left: 16px
+			.day
+				font-weight: 600
 		.break
 			z-index: 10
 			margin: 8px
