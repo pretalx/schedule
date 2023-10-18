@@ -21,7 +21,7 @@ module.exports = {
 				template: 'public/demo.html'
 			}),
 			new MomentLocalesPlugin({ // 'en' is a part of moment and cannot be removed
-				localesToKeep: ['en-ie', 'de', 'fr', 'zh-tw', 'ja'],
+				localesToKeep: ['en-ie', 'ar', 'cs', 'de', 'el', 'es', 'fr', 'it', 'zh-tw', 'ja', 'pt-br'],
 			}),
 			new MomentTimezoneDataPlugin({
 				startYear: currentYear - 5,
