@@ -178,8 +178,14 @@ export default {
 		let version = ''
 		if (this.version)
 			version = `v/${this.version}/`
-		const url = `${this.eventUrl}schedule/${version}widget/v2.json`
-		this.schedule = await (await fetch(url)).json()
+		const url = `${this.eventUrl}schedule/${version}widget.json`
+		const legacyUrl = `${this.eventUrl}schedule/${version}widget/v2.json`
+		// fetch from url, but fall back to legacyUrl if url fails
+		try {
+			this.schedule = await (await fetch(url)).json()
+		} catch (e) {
+			this.schedule = await (await fetch(legacyUrl)).json()
+		}
 		this.currentTimezone = localStorage.getItem(`${this.eventSlug}_timezone`)
 		this.currentTimezone = [this.schedule.timezone, this.userTimezone].includes(this.currentTimezone) ? this.currentTimezone : this.schedule.timezone
 		this.currentDay = this.days[0]
