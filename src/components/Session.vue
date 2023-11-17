@@ -126,7 +126,7 @@ export default {
 		border-radius: 6px 0 0 6px
 		display: flex
 		flex-direction: column
-		align-items: center
+		align-items: flex-end
 		.start
 			color: $clr-primary-text-dark
 			font-size: 16px
@@ -142,6 +142,7 @@ export default {
 				font-size: 13px
 		.duration
 			color: $clr-secondary-text-dark
+			text-align: right
 		.buffer
 			flex: auto
 		.is-live
