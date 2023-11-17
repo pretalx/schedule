@@ -18,11 +18,21 @@
 				:style="getSessionStyle(session)",
 				:showAbstract="false", :showRoom="false",
 				:faved="favs.includes(session.id)",
+				:hasAmPm="hasAmPm",
 				@fav="$emit('fav', session.id)",
 				@unfav="$emit('unfav', session.id)"
 			)
 			.break(v-else, :style="getSessionStyle(session)")
-				.title {{ getLocalizedString(session.title) }}
+				.time-box
+					.start(v-if="hasAmPm", class="has-ampm")
+						.time {{ session.start.format('h:mm') }}
+						.ampm {{ session.start.format('A') }}
+					.start(v-else)
+						.time {{ session.start.format('LT') }}
+					.duration {{ getPrettyDuration(session.start, session.end) }}
+					.buffer
+				.info
+					.title {{ getLocalizedString(session.title) }}
 </template>
 <script>
 // TODO
@@ -30,7 +40,7 @@
 // - optionally only show venueless rooms
 import moment from 'moment-timezone'
 import Session from './Session'
-import { getLocalizedString } from 'utils'
+import { getLocalizedString, getPrettyDuration } from 'utils'
 
 const getSliceName = function (date) {
 	return `slice-${date.format('MM-DD-HH-mm')}`
@@ -55,12 +65,16 @@ export default {
 		return {
 			moment,
 			getLocalizedString,
+			getPrettyDuration,
 			scrolledDay: null
 		}
 	},
 	computed: {
 		hasSessionsWithoutRoom () {
 			return this.sessions.some(s => !s.room)
+		},
+		hasAmPm () {
+			return moment.localeData().longDateFormat('LT').endsWith(' A')
 		},
 		timeslices () {
 			const minimumSliceMins = 30
@@ -346,21 +360,23 @@ export default {
 					height: auto
 					width: 200px
 					white-space: normal
-		.c-linear-schedule-session
-			z-index: 10
 		.break
-			z-index: 10
-			margin: 8px
-			// border: border-separator()
-			border-radius: 4px
-			background-color: $clr-grey-200
-			display: flex
-			justify-content: center
-			align-items: center
-			.title
-				font-size: 20px
-				font-weight: 500
-				color: $clr-secondary-text-light
+			.time-box
+				background-color: $clr-grey-500
+				.start
+					color: $clr-primary-text-dark
+				.duration
+					color: $clr-secondary-text-dark
+			.info
+				background-color: $clr-grey-200
+				border: none
+				justify-content: center
+				align-items: center
+				.title
+					font-size: 20px
+					font-weight: 500
+					color: $clr-secondary-text-light
+					align: center
 	.timeslice
 		color: $clr-secondary-text-light
 		padding: 8px 10px 0 16px

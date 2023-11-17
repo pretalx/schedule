@@ -14,3 +14,15 @@ export function findScrollParent (node) {
 	if (isScrolling(node)) return node
 	return findScrollParent(node.parentNode)
 }
+export function getPrettyDuration (start, end) {
+	let minutes = end.diff(start, 'minutes')
+	const hours = Math.floor(minutes / 60)
+	if (minutes <= 60) {
+		return `${minutes}min`
+	}
+	minutes = minutes % 60
+	if (minutes) {
+		return `${hours}h${minutes}min`
+	}
+	return `${hours}h`
+}

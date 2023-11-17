@@ -1,10 +1,10 @@
 <template lang="pug">
 a.c-linear-schedule-session(:class="{faved}", :style="style", :href="link", @click="onSessionLinkClick($event, session)", :target="linkTarget")
 	.time-box
-		.start(:class="{'has-ampm': startTime.ampm}")
+		.start(:class="{'has-ampm': hasAmPm}")
 			.time {{ startTime.time }}
 			.ampm(v-if="startTime.ampm") {{ startTime.ampm }}
-		.duration {{ durationPretty }}
+		.duration {{ getPrettyDuration(session.start, session.end) }}
 		.buffer
 		.is-live(v-if="isLive") live
 	.info
@@ -26,7 +26,7 @@ a.c-linear-schedule-session(:class="{faved}", :style="style", :href="link", @cli
 <script>
 import moment from 'moment-timezone'
 import MarkdownIt from 'markdown-it'
-import { getLocalizedString } from 'utils'
+import { getLocalizedString, getPrettyDuration } from 'utils'
 
 const markdownIt = MarkdownIt({
 	linkify: true,
@@ -47,6 +47,10 @@ export default {
 		faved: {
 			type: Boolean,
 			default: false
+		},
+		hasAmPm: {
+			type: Boolean,
+			default: false
 		}
 	},
 	inject: {
@@ -65,6 +69,7 @@ export default {
 	},
 	data () {
 		return {
+			getPrettyDuration,
 			getLocalizedString
 		}
 	},
@@ -79,7 +84,7 @@ export default {
 		},
 		startTime () {
 			// check if 12h or 24h locale
-			if (moment.localeData().longDateFormat('LT').endsWith(' A')) {
+			if (this.hasAmPm) {
 				return {
 					time: this.session.start.format('h:mm'),
 					ampm: this.session.start.format('A')
@@ -89,21 +94,6 @@ export default {
 					time: moment(this.session.start).format('LT')
 				}
 			}
-		},
-		durationMinutes () {
-			return moment(this.session.end).diff(this.session.start, 'minutes')
-		},
-		durationPretty () {
-			let minutes = this.durationMinutes
-			const hours = Math.floor(minutes / 60)
-			if (minutes <= 60) {
-				return `${minutes}min`
-			}
-			minutes = minutes % 60
-			if (minutes) {
-				return `${hours}h${minutes}min`
-			}
-			return `${hours}h`
 		},
 		isLive () {
 			return moment(this.session.start).isBefore(this.now) && moment(this.session.end).isAfter(this.now)
@@ -119,7 +109,8 @@ export default {
 }
 </script>
 <style lang="stylus">
-.c-linear-schedule-session
+.c-linear-schedule-session, .break
+	z-index: 10
 	display: flex
 	min-width: 300px
 	min-height: 96px
