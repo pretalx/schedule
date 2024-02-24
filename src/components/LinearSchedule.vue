@@ -17,7 +17,7 @@
 </template>
 <script>
 import moment from 'moment-timezone'
-import { getLocalizedString } from 'utils'
+import { getLocalizedString } from '~/utils'
 import Session from './Session'
 
 export default {
