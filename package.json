@@ -15,6 +15,9 @@
   },
   "main": "./dist/pretalx-schedule.js",
   "type": "module",
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
       "import": "./dist/pretalx-schedule.js"
