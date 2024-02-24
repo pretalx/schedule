@@ -41,6 +41,7 @@ const markdownIt = MarkdownIt({
 
 export default {
 	props: {
+		now: Object,
 		session: Object,
 		showAbstract: {
 			type: Boolean,

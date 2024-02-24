@@ -8,6 +8,7 @@
 				session(
 					v-if="isProperSession(session)",
 					:session="session",
+					:now="now",
 					:faved="session.id && favs.includes(session.id)",
 					@fav="$emit('fav', session.id)",
 					@unfav="$emit('unfav', session.id)"
