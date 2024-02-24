@@ -6,7 +6,7 @@
   "scripts": {
     "start": "vite",
     "build": "vite build --config vite.config.lib.js",
-    "build:lib": "VUE_CLI_SERVICE_CONFIG_PATH=./vue.config.lib.js vue-cli-service build --target lib --formats commonjs src/lib.js",
+    "build:lib": "vite build --config vite.config.lib.js",
     "build:wc": "npx vue-cli-service build --target wc --inline-vue --name pretalx-schedule src/App.vue",
     "lint": "vue-cli-service lint",
     "test": "echo \"Error: no test specified\" && exit 1",
