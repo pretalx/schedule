@@ -15,6 +15,7 @@
 			session(
 				v-if="isProperSession(session)",
 				:session="session",
+				:now="now",
 				:style="getSessionStyle(session)",
 				:showAbstract="false", :showRoom="false",
 				:faved="favs.includes(session.id)",
