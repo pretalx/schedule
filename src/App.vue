@@ -178,7 +178,7 @@ export default {
 		let version = ''
 		if (this.version)
 			version = `v/${this.version}/`
-		const url = `${this.eventUrl}schedule/${version}widget/schedule.json`
+		const url = `${this.eventUrl}schedule/${version}widgets/schedule.json`
 		const legacyUrl = `${this.eventUrl}schedule/${version}widget/v2.json`
 		// fetch from url, but fall back to legacyUrl if url fails
 		try {
