@@ -91,7 +91,9 @@ export default {
 		}
 		if (fragmentIsDate) return
 		const nowIndex = this.sessionBuckets.findIndex(bucket => this.now.isBefore(bucket.date))
-		if (nowIndex < 0) return
+		const beforeIndex = this.sessionBuckets.findIndex(bucket => this.now.isBefore(bucket.date))
+		// do not scroll if the event has not started yet
+		if ((nowIndex < 0) || (beforeIndex === 0)) return
 		const nowBucket = this.sessionBuckets[Math.max(0, nowIndex - 1)]
 		const scrollTop = this.$refs[this.getBucketName(nowBucket.date)]?.[0]?.offsetTop - 90
 		if (this.scrollParent) {
