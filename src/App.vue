@@ -1,6 +1,9 @@
 <template lang="pug">
 .pretalx-schedule(:style="{'--scrollparent-width': scrollParentWidth + 'px', '--schedule-max-width': scheduleMaxWidth + 'px', '--pretalx-sticky-date-offset': days && days.length > 1 ? '48px' : '0px'}", :class="showGrid ? ['grid-schedule'] : ['list-schedule']")
-	template(v-if="schedule && sessions")
+	template(v-if="scheduleError")
+		.schedule-error
+			.error-message An error occurred while loading the schedule. Please try again later.
+	template(v-else-if="schedule && sessions")
 		.modal-overlay(v-if="showFilterModal", @click.stop="showFilterModal = false")
 			.modal-box(@click.stop="")
 				h3 Tracks
@@ -92,7 +95,8 @@ export default {
 			showFilterModal: false,
 			favs: [],
 			allTracks: [],
-			onlyFavs: false
+			onlyFavs: false,
+			scheduleError: false,
 		}
 	},
 	computed: {
@@ -184,7 +188,12 @@ export default {
 		try {
 			this.schedule = await (await fetch(url)).json()
 		} catch (e) {
-			this.schedule = await (await fetch(legacyUrl)).json()
+			try {
+				this.schedule = await (await fetch(legacyUrl)).json()
+			} catch (e) {
+				this.scheduleError = true
+				return
+			}
 		}
 		this.currentTimezone = localStorage.getItem(`${this.eventSlug}_timezone`)
 		this.currentTimezone = [this.schedule.timezone, this.userTimezone].includes(this.currentTimezone) ? this.currentTimezone : this.schedule.timezone
@@ -283,6 +292,13 @@ export default {
 </script>
 <style lang="stylus">
 @import 'styles/global.styl'
+.schedule-error
+	color: $clr-error
+	font-size: 18px
+	text-align: center
+	padding: 32px
+	.error-message
+		margin-top: 16px
 .pretalx-schedule
 	display: flex
 	flex-direction: column
