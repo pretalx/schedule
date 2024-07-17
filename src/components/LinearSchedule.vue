@@ -24,6 +24,7 @@ export default {
 	components: { Session },
 	props: {
 		sessions: Array,
+		rooms: Array,
 		favs: {
 			type: Array,
 			default () {
@@ -57,7 +58,10 @@ export default {
 					buckets[key].push(session)
 				}
 			}
-			return Object.entries(buckets).map(([date, sessions]) => ({date: sessions[0].start, sessions}))
+			return Object.entries(buckets).map(([date, sessions]) => ({
+				date: sessions[0].start,
+				// sort by room for stable sort across time buckets
+				sessions: sessions.sort((a, b) => this.rooms.findIndex(room => room.id === a.room.id) - this.rooms.findIndex(room => room.id === b.room.id))}))
 		}
 	},
 	watch: {

@@ -43,6 +43,7 @@
 			@unfav="unfav($event)")
 		linear-schedule(v-else,
 			:sessions="sessions",
+			:rooms="rooms",
 			:currentDay="currentDay",
 			:now="now",
 			:scrollParent="scrollParent",
