@@ -18,9 +18,15 @@ a.c-linear-schedule-session(:class="{faved}", :style="style", :href="link", @cli
 		.bottom-info
 			.track(v-if="session.track") {{ getLocalizedString(session.track.name) }}
 			.room(v-if="showRoom && session.room") {{ getLocalizedString(session.room.name) }}
-	bunt-icon-button.btn-fav-container(@click.prevent.stop="faved ? $emit('unfav', session.id) : $emit('fav', session.id)")
-		svg.star(viewBox="0 0 24 24")
-			path(d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z")
+	.session-icons
+		bunt-icon-button.btn-fav-container(@click.prevent.stop="faved ? $emit('unfav', session.id) : $emit('fav', session.id)")
+			svg.star(viewBox="0 0 24 24")
+				path(d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z")
+		svg.do-not-record(v-if="session.do_not_record", viewBox="0 0 116.59076 116.59076", width="4116.59076mm", height="116.59076mm", fill="none", xmlns="http://www.w3.org/2000/svg")
+			g(transform="translate(-9.3465481,-5.441411)")
+				rect(style="fill:#000000;fill-opacity;stroke:none;stroke-width:11.2589;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill", width="52.753284", height="39.619537", x="35.496307", y="43.927021", rx="5.5179553", ry="7.573648")
+				path(style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:18.7997;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill", d="M 99.787546,47.04792 V 80.425654 L 77.727407,63.736793 Z")
+				path(style="fill:none;stroke:#b23e65;stroke-width:12;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill", d="m 35.553146,95.825578 64.177559,-64.17757 m 16.294055,32.08879 A 48.382828,48.382828 0 0 1 67.641925,112.11961 48.382828,48.382828 0 0 1 19.259099,63.736798 48.382828,48.382828 0 0 1 67.641925,15.353968 48.382828,48.382828 0 0 1 116.02476,63.736798 Z")
 
 </template>
 <script>
@@ -206,17 +212,31 @@ export default {
 				text-align: right
 				color: $clr-secondary-text-light
 				ellipsis()
-	.btn-fav-container
-		display: none
+	.do-not-record
+		width: 24px
+		height: 24px
+	.session-icons
 		position: absolute
 		top: 2px
 		right: 2px
-		icon-button-style(style: clear)
-		svg path
-			fill: none
-			stroke: $clr-primary-text-light
-			stroke-width: 1px
-			vector-effect: non-scaling-stroke
+		display: flex
+		.do-not-record
+			padding: 6px 6px 6px 0
+		.btn-fav-container
+			margin-top: 2px
+			display: none
+			icon-button-style(style: clear)
+			padding: 2px
+			width: 32px
+			height: 32px
+			svg
+				height: 20px
+				width: 20px
+				path
+					fill: none
+					stroke: $clr-primary-text-light
+					stroke-width: 1px
+					vector-effect: non-scaling-stroke
 	&.faved
 		.btn-fav-container
 			display: inline-flex
