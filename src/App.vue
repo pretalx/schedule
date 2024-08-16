@@ -3,7 +3,7 @@
 	template(v-if="scheduleError")
 		.schedule-error
 			.error-message An error occurred while loading the schedule. Please try again later.
-	template(v-else-if="schedule && sessions")
+	template(v-else-if="schedule && sessions.length")
 		.modal-overlay(v-if="showFilterModal", @click.stop="showFilterModal = false")
 			.modal-box(@click.stop="")
 				h3 Tracks
@@ -165,7 +165,7 @@ export default {
 			return days
 		},
 		inEventTimezone () {
-			if (!this.schedule || !this.schedule.talks) return false
+			if (!this.schedule?.talks?.length) return false
 			const example = this.schedule.talks[0].start
 			return moment.tz(example, this.userTimezone).format('Z') === moment.tz(example, this.schedule.timezone).format('Z')
 		},
@@ -205,6 +205,10 @@ export default {
 				this.scheduleError = true
 				return
 			}
+		}
+		if (!this.schedule.talks.length) {
+			this.scheduleError = true
+			return
 		}
 		this.currentTimezone = localStorage.getItem(`${this.eventSlug}_timezone`)
 		this.currentTimezone = [this.schedule.timezone, this.userTimezone].includes(this.currentTimezone) ? this.currentTimezone : this.schedule.timezone
