@@ -58,14 +58,10 @@
 			div.message {{ message }}
 </template>
 <script>
-import Vue from 'vue'
-import Buntpapier from 'buntpapier'
 import moment from 'moment-timezone'
-import LinearSchedule from 'components/LinearSchedule'
-import GridSchedule from 'components/GridSchedule'
-import { findScrollParent, getLocalizedString } from 'utils'
-
-Vue.use(Buntpapier)
+import LinearSchedule from '~/components/LinearSchedule'
+import GridSchedule from '~/components/GridSchedule'
+import { findScrollParent, getLocalizedString } from '~/utils'
 
 export default {
 	name: 'PretalxSchedule',

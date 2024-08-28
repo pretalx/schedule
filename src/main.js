@@ -1,14 +1,12 @@
-import Vue from 'vue'
+import { createApp } from 'vue'
+import Buntpapier from 'buntpapier'
 import App from '~/App.vue'
 import '~/styles/global.styl'
 
-Vue.config.productionTip = false
-
-new Vue({
-	render: h => h(App, {
-		props: {
-			eventUrl: 'https://pretalx.com/democon/',
-			locale: 'en-ie'
-		}
-	})
-}).$mount('#app')
+createApp(
+	App,
+	{
+		eventUrl: 'https://pretalx.com/democon/',
+		locale: 'en-ie'
+	}
+).use(Buntpapier).mount('#app')
