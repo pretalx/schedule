@@ -26,9 +26,9 @@
 					)
 				template {{ favs.length }}
 			template(v-if="!inEventTimezone")
-				bunt-select(name="timezone", :options="[{id: schedule.timezone, label: schedule.timezone}, {id: userTimezone, label: userTimezone}]", v-model="currentTimezone", @blur="saveTimezone")
+				bunt-select.timezone-item(name="timezone", :options="[{id: schedule.timezone, label: schedule.timezone}, {id: userTimezone, label: userTimezone}]", v-model="currentTimezone", @blur="saveTimezone")
 			template(v-else)
-				div.timezone-label.bunt-tab-header-item {{ schedule.timezone }}
+				div.timezone-label.timezone-item.bunt-tab-header-item {{ schedule.timezone }}
 		bunt-tabs.days(v-if="days && days.length > 1", :active-tab="currentDay && currentDay.format()", ref="tabs" :class="showGrid? ['grid-tabs'] : ['list-tabs']")
 			bunt-tab(v-for="day in days", :id="day.format()", :header="day.format(dateFormat)", @selected="changeDay(day)")
 		grid-schedule(v-if="showGrid",
@@ -422,7 +422,7 @@ export default {
 		position: sticky
 		z-index: 100
 		left: 18px
-		width: min(calc(100vw - 36px), var(--schedule-max-width))
+		width: min(calc(100% - 36px), var(--schedule-max-width))
 		.fav-toggle
 			margin-right: 8px
 			display: flex
@@ -452,8 +452,9 @@ export default {
 		.timezone-label
 			cursor: default
 			color: $clr-secondary-text-light
-		.bunt-select, .timezone-label
+		.timezone-item
 			margin-left: auto
+			padding-right: 28px
 	.days
 		background-color: $clr-white
 		tabs-style(active-color: var(--pretalx-clr-primary), indicator-color: var(--pretalx-clr-primary), background-color: transparent)
