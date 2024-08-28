@@ -7,9 +7,7 @@
     "start": "vite --config vite.config.dev.js",
     "build": "vite build --config vite.config.lib.js",
     "build:lib": "vite build --config vite.config.lib.js",
-    "build:wc": "npx vue-cli-service build --target wc --inline-vue --name pretalx-schedule src/App.vue",
-    "lint": "vue-cli-service lint",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:wc": "vite build --config vite.config.wc.js",
     "analyze": "ANALYZE=true npm run build",
     "prepublishOnly": "npm run build:lib"
   },
