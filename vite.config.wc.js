@@ -27,6 +27,9 @@ export default defineConfig({
 					isCustomElement: tag => tag === 'pretalx-schedule'
 				},
 			},
+			features: {
+				customElement: true
+			}
 		}),
 	],
 	css: {
