@@ -47,7 +47,6 @@ export default defineConfig({
 	build: {
 		lib: {
 			entry: path.resolve(__dirname, 'src/main-wc.js'),
-			formats: ['es'],
 			name: 'PretalxSchedule',
 			fileName: 'pretalx-schedule'
 		},
