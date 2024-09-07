@@ -57,6 +57,8 @@
 			.btn.btn-danger(@click="errorMessages = errorMessages.filter(m => m !== message)") x
 			div.message {{ message }}
 	#bunt-teleport-target(ref="teleportTarget")
+	a(href="https://pretalx.com", target="_blank").powered-by powered by
+		span.pretalx(href="https://pretalx.com", target="_blank") pretalx
 </template>
 <script>
 import { computed } from 'vue'
@@ -507,4 +509,17 @@ export default {
 			cursor: pointer
 		.message
 			margin-right: 22px
+.powered-by
+	text-align: center
+	color: $clr-grey-600
+	font-size: 12px
+	margin-top: 16px
+	margin-bottom: 16px
+	.pretalx
+		transition: all 0.1s ease-in
+		font-weight: bold
+		margin-left: 4px
+		color: $clr-grey-600
+	&:hover .pretalx
+		color: #3aa57c
 </style>
