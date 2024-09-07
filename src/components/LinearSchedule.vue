@@ -8,6 +8,7 @@
 				session(
 					v-if="isProperSession(session)",
 					:session="session",
+					:now="now",
 					:faved="session.id && favs.includes(session.id)",
 					@fav="$emit('fav', session.id)",
 					@unfav="$emit('unfav', session.id)"
@@ -17,7 +18,7 @@
 </template>
 <script>
 import moment from 'moment-timezone'
-import { getLocalizedString } from 'utils'
+import { getLocalizedString } from '~/utils'
 import Session from './Session'
 
 export default {

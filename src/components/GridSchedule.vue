@@ -15,6 +15,7 @@
 			session(
 				v-if="isProperSession(session)",
 				:session="session",
+				:now="now",
 				:style="getSessionStyle(session)",
 				:showAbstract="false", :showRoom="false",
 				:faved="favs.includes(session.id)",
@@ -40,7 +41,7 @@
 // - optionally only show venueless rooms
 import moment from 'moment-timezone'
 import Session from './Session'
-import { getLocalizedString, getPrettyDuration } from 'utils'
+import { getLocalizedString, getPrettyDuration } from '~/utils'
 
 const getSliceName = function (date) {
 	return `slice-${date.format('MM-DD-HH-mm')}`

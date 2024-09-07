@@ -49,7 +49,7 @@ module.exports = {
 	productionSourceMap: false
 }
 
-if (process.env.ANALYZE) {
+if (import.meta.env.ANALYZE) {
 	console.log('building with bundle analyzer')
 	module.exports.configureWebpack.plugins.push(new BundleAnalyzerPlugin({analyzerMode: 'static'}))
 }
