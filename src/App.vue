@@ -146,7 +146,8 @@ export default {
 					end: moment.tz(session.end, this.currentTimezone),
 					speakers: session.speakers?.map(s => this.speakersLookup[s]),
 					track: this.tracksLookup[session.track],
-					room: this.roomsLookup[session.room]
+					room: this.roomsLookup[session.room],
+					tags: session.tags
 				})
 			}
 			sessions.sort((a, b) => a.start.diff(b.start))

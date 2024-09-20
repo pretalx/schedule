@@ -15,6 +15,10 @@ a.c-linear-schedule-session(:class="{faved}", :style="style", :href="link", @cli
 					img(v-if="speaker.avatar", :src="speaker.avatar")
 			.names {{ session.speakers.map(s => s.name).join(', ') }}
 		.abstract(v-if="showAbstract", v-html="abstract")
+		.tags-box
+			.tags(v-for="tag_item of session.tags", :key="tag_item.id")
+				.tag-item(:style="{'background-color': tag_item.color, 'color': getContrastColor(tag_item.color)}") {{ tag_item.tag }}
+
 		.bottom-info
 			.track(v-if="session.track") {{ getLocalizedString(session.track.name) }}
 			.room(v-if="showRoom && session.room") {{ getLocalizedString(session.room.name) }}
@@ -123,6 +127,17 @@ export default {
 			setTimeout(() => {
 				this.$refs.star.classList.remove('rotate-star')
 			}, 400)
+		},
+		getContrastColor(bgColor) {
+			if (!bgColor) {
+				return '';
+			}
+			bgColor = bgColor.replace('#', '');
+			var r = parseInt(bgColor.slice(0, 2), 16);
+			var g = parseInt(bgColor.slice(2, 4), 16);
+			var b = parseInt(bgColor.slice(4, 6), 16);
+			var brightness = (r * 299 + g * 587 + b * 114) / 1000;
+			return brightness > 128 ? 'black' : 'white';
 		}
 	}
 }
@@ -250,6 +265,15 @@ export default {
 					stroke: #ffa000
 					stroke-width: 1px
 					vector-effect: non-scaling-stroke
+	.tags-box{
+	   	display: flex;
+	    column-gap: 10px;
+	    margin-bottom: 5px;
+	    .tag-item {
+			   padding: 3px;
+				 border-radius: 3px;
+			}
+	}
 	&.faved
 		.btn-fav-container
 			display: inline-flex
