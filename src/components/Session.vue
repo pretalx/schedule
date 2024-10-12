@@ -12,7 +12,9 @@ a.c-linear-schedule-session(:class="{faved}", :style="style", :href="link", @cli
 		.speakers(v-if="session.speakers")
 			.avatars
 				template(v-for="speaker of session.speakers")
-					img(v-if="speaker.avatar", :src="speaker.avatar")
+					img(v-if="speaker.avatar_thumbnail_tiny", :src="speaker.avatar_thumbnail_tiny")
+					img(v-else-if="speaker.avatar_thumbnail_default", :src="speaker.avatar_thumbnail_default")
+					img(v-else-if="speaker.avatar", :src="speaker.avatar")
 			.names {{ session.speakers.map(s => s.name).join(', ') }}
 		.abstract(v-if="showAbstract", v-html="abstract")
 		.bottom-info
