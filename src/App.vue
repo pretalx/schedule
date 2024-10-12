@@ -315,10 +315,10 @@ export default {
 						toFav.forEach(e => this.apiRequest(`submissions/${e}/favourite/`, 'POST').catch())
 						return data
 					}).catch(e => {
-						this.pushErrorMessage(this.translationMessages.favs_not_loaded || this.translationMessages.not_loaded)
+						this.pushErrorMessage(this.translationMessages.favs_not_saved)
 					})
 				} catch (e) {
-					this.pushErrorMessage(this.translationMessages.favs_not_loaded || this.translationMessages.not_loaded)
+					this.pushErrorMessage(this.translationMessages.favs_not_saved)
 				}
 			}
 			return favs
@@ -345,10 +345,10 @@ export default {
 			}
 			if (this.loggedIn) {
 				this.apiRequest(`submissions/${id}/favourite/`, 'POST').catch(e => {
-					this.pushErrorMessage(this.translationMessages.favs_not_saved || this.translationMessages.not_saved)
+					this.pushErrorMessage(this.translationMessages.favs_not_saved)
 				})
 			} else {
-				this.pushErrorMessage(this.translationMessages.favs_not_logged_in || this.translationMessages.not_logged_in)
+				this.pushErrorMessage(this.translationMessages.favs_not_logged_in)
 			}
 		},
 		unfav (id) {
@@ -356,10 +356,10 @@ export default {
 			this.saveFavs()
 			if (this.loggedIn) {
 				this.apiRequest(`submissions/${id}/favourite/`, 'DELETE').catch(e => {
-					this.pushErrorMessage(this.translationMessages.favs_not_saved || this.translationMessages.not_saved)
+					this.pushErrorMessage(this.translationMessages.favs_not_saved)
 				})
 			} else {
-				this.pushErrorMessage(this.translationMessages.favs_not_logged_in || this.translationMessages.not_logged_in)
+				this.pushErrorMessage(this.translationMessages.favs_not_logged_in)
 			}
 			if (!this.favs.length) this.onlyFavs = false
 		},
