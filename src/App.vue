@@ -214,12 +214,21 @@ export default {
 			return DateTime.local().offset === DateTime.local({ zone: this.schedule.timezone }).offset
 		},
 		dateFormat () {
-			// Defaults to cccc d. LLLL for: all grid schedules with more than two rooms, and all list schedules with less than five days
-			// After that, we start to shorten the date string, hoping to reduce unwanted scroll behaviour
-			if ((this.showGrid && this.schedule && this.schedule.rooms.length > 2) || !this.days || !this.days.length) return { weekday: 'long', day: 'numeric', month: 'long'}
-			if (this.days && this.days.length <= 5) return { weekday: 'long', day: 'numeric', month: 'long'}
-			if (this.days && this.days.length <= 7) return { weekday: 'long', day: 'numeric', month: 'short'}
-			return { weekday: 'short', day: 'numeric', month: 'short'}
+			const format = { day: 'numeric', month: 'short' }
+			if (this.showGrid) {
+				// Mobile schedules always omit the weekday to preserve space, for others, we start
+				// shortening the weekday if the schedule gets unwieldy (but we shorten the month name first)
+				if (this.days && (!this.days.length || this.days.length <= 7)) {
+					format.weekday = 'long'
+				} else {
+					format.weekday = 'short'
+				}
+			}
+			if ((this.days && this.days.length <= 5) || (this.showGrid && this.schedule && this.schedule.rooms.length > 2)) {
+				// If we have fewer than five days or if we're on a sizeable grid schedule, we can show the long month name
+				format.month = 'long'
+			}
+			return format
 		},
 		hasAmPm () {
 			return new Intl.DateTimeFormat(this.locale, {hour: 'numeric'}).resolvedOptions().hour12
