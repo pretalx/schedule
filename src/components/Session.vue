@@ -118,10 +118,18 @@ export default {
 			return this.session.start < this.now && this.session.end > this.now
 		},
 		abstractText () {
+			let abstractText = this.session.abstract
 			try {
-				return markdownIt.renderInline(this.session.abstract)
+				const fullAbstract = markdownIt.render(abstractText)
+				if (fullAbstract.length && fullAbstract.includes("<table>")) {
+					const tableStart = abstractText.search("|")
+					if (tableStart >= 0) {
+						abstractText = abstractText.slice(0, tableStart)
+					}
+				}
+				return markdownIt.renderInline(abstractText)
 			} catch (error) {
-				return this.session.abstract
+				return abstractText
 			}
 		}
 	},
@@ -226,6 +234,7 @@ export default {
 			-webkit-line-clamp: 3
 			-webkit-box-orient: vertical
 			overflow: hidden
+			font-weight: normal
 		.bottom-info
 			flex: auto
 			display: flex
