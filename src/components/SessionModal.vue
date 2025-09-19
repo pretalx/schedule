@@ -53,11 +53,6 @@ dialog.pretalx-modal#session-modal(ref="modal", @click.stop="close()")
 			.speaker-details
 				h3 {{ modalContent.contentObject.name }}
 				.speaker-content.card-content
-					.text-content
-						template(v-if="modalContent.contentObject.isLoading")
-							bunt-progress-circular(size="big", :page="true")
-						template(v-else)
-							.biography(v-if="modalContent.contentObject.apiContent?.biography?.length > 0", v-html="markdownIt.render(modalContent.contentObject.apiContent.biography)")
 					.speaker-avatar-container(:class="{ 'outline-container': shortAnswers.length > 0 || iconAnswers.length > 0 }")
 						.img-wrapper
 							img(v-if="modalContent.contentObject.avatar", :src="modalContent.contentObject.avatar", :alt="modalContent.contentObject.name")
@@ -85,6 +80,11 @@ dialog.pretalx-modal#session-modal(ref="modal", @click.stop="close()")
 									span.answer(v-else-if="answer.question.variant === 'boolean'") {{ answer.answer ? 'Yes' : 'No' }}
 									span.answer(v-else-if="answer.answer", v-html="markdownIt.render(answer.answer)")
 									span.answer(v-else) No response
+					.text-content
+						template(v-if="modalContent.contentObject.isLoading")
+							bunt-progress-circular(size="big", :page="true")
+						template(v-else)
+							.biography(v-if="modalContent.contentObject.apiContent?.biography?.length > 0", v-html="markdownIt.render(modalContent.contentObject.apiContent.biography)")
 			.speaker-sessions
 				session(
 					v-for="session in modalContent.contentObject.sessions",
@@ -341,7 +341,7 @@ export default {
 			margin-bottom: 0
 		.speaker-content
 			display: flex
-			flex-direction: row
+			flex-direction: row-reverse
 			align-items: flex-start
 			justify-content: space-between
 			margin-bottom: 16px
@@ -355,7 +355,7 @@ export default {
 				box-shadow: rgba(0, 0, 0, 0.24) 0px 1px 2px 0px
 				border-radius: 6px
 				padding: 12px
-				margin-right: 8px
+				margin-left: 8px
 				display: flex
 				flex-direction: column
 				align-items: center
@@ -398,4 +398,34 @@ export default {
 							text-decoration: none
 							&:hover
 								text-decoration: underline
+
+	@media (max-width: 768px)
+		.speaker-details
+			.speaker-content
+				display: block
+
+				.speaker-avatar-container
+					float: right
+					width: auto
+					max-width: 200px
+					margin-left: 16px
+					margin-bottom: 16px
+
+					&.outline-container
+						margin-right: 0
+
+				.text-content
+					display: inline
+
+					.biography
+						display: inline
+
+			&::after
+				content: ""
+				display: table
+				clear: both
+
+		.speaker-sessions
+			clear: both
+			margin: 0 -8px /* Counteract default session block margins, so that these align with speaker blocks and text blocks */
 </style>
