@@ -56,7 +56,7 @@
 	#bunt-teleport-target(ref="teleportTarget")
 	filter-modal(
 		ref="filterModal",
-		:tracks="allTracks",
+		:tracks="tracks",
 		@trackToggled="onlyFavs = false"
 	)
 	session-modal(
@@ -86,7 +86,7 @@ import Session from '~/components/Session'
 import ScheduleSettings from '~/components/ScheduleSettings'
 import SessionModal from '~/components/SessionModal'
 import FilterModal from '~/components/FilterModal'
-import { findScrollParent, getLocalizedString, getSessionTime } from '~/utils'
+import { findScrollParent, getLocalizedString, getSessionTime, fetchSchedule } from '~/utils'
 
 const markdownIt = MarkdownIt({
 	linkify: false,
@@ -138,7 +138,7 @@ export default {
 			currentDay: null,
 			currentTimezone: null,
 			favs: [],
-			allTracks: [],
+			selectedTrackIds: [],
 			onlyFavs: false,
 			scheduleError: false,
 			onHomeServer: false,
@@ -148,6 +148,7 @@ export default {
 			errorMessages: [],
 			displayDates: this.dateFilter?.split(',').filter(d => d.length === 10) || [],
 			modalContent: null,
+			versionPollInterval: null,
 		}
 	},
 	computed: {
@@ -167,7 +168,8 @@ export default {
 			return this.schedule.tracks.reduce((acc, t) => { acc[t.id] = t; return acc }, {})
 		},
 		filteredTracks () {
-			return this.allTracks.filter(t => t.selected)
+			if (this.selectedTrackIds.length === 0) return []
+			return this.tracks.filter(t => this.selectedTrackIds.includes(t.id))
 		},
 		speakersLookup () {
 			if (!this.schedule) return {}
@@ -246,6 +248,15 @@ export default {
 			if (!this.eventUrl) return ''
 			const eventUrlObj = new URL(this.eventUrl)
 			return `${eventUrlObj.protocol}//${eventUrlObj.host}/api/events/${this.eventSlug}/`
+		},
+		tracks () {
+			if (!this.schedule) return []
+			return this.schedule.tracks.map(t => ({
+				...t,
+				value: t.id,
+				label: getLocalizedString(t.name),
+				selected: this.selectedTrackIds.includes(t.id)
+			}))
 		}
 	},
 	async created () {
@@ -253,21 +264,12 @@ export default {
 		const fragment = window.location.hash.slice(1)
 		Settings.defaultLocale = this.locale
 		this.userTimezone = DateTime.local().zoneName
-		let version = ''
-		if (this.version)
-			version = `v/${this.version}/`
-		const url = `${this.eventUrl}schedule/${version}widgets/schedule.json`
-		const legacyUrl = `${this.eventUrl}schedule/${version}widget/v2.json`
-		// fetch from url, but fall back to legacyUrl if url fails
+
 		try {
-			this.schedule = await (await fetch(url)).json()
+			this.schedule = await fetchSchedule(this.eventUrl, this.version)
 		} catch (e) {
-			try {
-				this.schedule = await (await fetch(legacyUrl)).json()
-			} catch (e) {
-				this.scheduleError = true
-				return
-			}
+			this.scheduleError = true
+			return
 		}
 		if (!this.schedule.talks.length) {
 			this.scheduleError = true
@@ -282,7 +284,6 @@ export default {
 			await this.$nextTick()
 			this.onWindowResize()
 		}
-		this.schedule.tracks.forEach(t => { t.value = t.id; t.label = getLocalizedString(t.name); this.allTracks.push(t) })
 
 		// set API URL before loading favs
 		this.apiUrl = window.location.origin + '/api/events/' + this.eventSlug + '/'
@@ -295,6 +296,10 @@ export default {
 				this.currentDay = filteredDays[0].toISODate()
 			}
 		}
+
+		this.versionPollInterval = setInterval(() => {
+			this.checkForScheduleUpdate()
+		},  5 * 60 * 1000)
 	},
 	async mounted () {
 		// We block until we have either a regular parent or a shadow DOM parent
@@ -324,8 +329,11 @@ export default {
 			}
 		}
 	},
-	destroyed () {
-		// TODO destroy observers
+	beforeUnmount () {
+		if (this.versionPollInterval) {
+			clearInterval(this.versionPollInterval)
+			this.versionPollInterval = null
+		}
 	},
 	methods: {
 		setCurrentDay (day) {
@@ -558,7 +566,54 @@ export default {
 			}
 		},
 		resetFilteredTracks () {
-			this.allTracks.forEach(t => t.selected = false)
+			this.selectedTrackIds = []
+		},
+		onTrackFilterChange (selectedIds) {
+			this.selectedTrackIds = selectedIds
+			this.onlyFavs = false
+		},
+		async checkForScheduleUpdate () {
+			if (!this.schedule || !this.remoteApiUrl) return
+
+			try {
+				const response = await fetch(`${this.remoteApiUrl}schedules/by-version/?latest=1`, {
+					credentials: this.onHomeServer ? 'same-origin' : 'omit'
+				})
+
+				if (response.ok) {
+					const latestUrl = await response.text()
+
+					if (latestUrl.trim()) {
+						const expectedPath = `/schedules/${this.schedule.schedule_id}/`
+
+						if (!latestUrl.endsWith(expectedPath)) {
+							console.log(`New schedule version detected, URL: ${latestUrl}`)
+							await this.refetchSchedule()
+						}
+					}
+				}
+			} catch (error) { }
+		},
+		async refetchSchedule () {
+			try {
+				const newSchedule = await fetchSchedule(this.eventUrl, this.version)
+
+				if (!newSchedule.talks.length) {
+					console.error('Refetched schedule has no talks')
+					return
+				}
+
+				this.schedule = newSchedule
+
+				this.selectedTrackIds = this.selectedTrackIds.filter(id =>
+					this.schedule.tracks.some(t => t.id === id)
+				)
+				this.favs = this.pruneFavs(this.favs, this.schedule)
+
+				console.log(`Schedule updated to version ${this.schedule.version || 'unknown'}`)
+			} catch (error) {
+				console.error('Failed to refetch schedule:', error)
+			}
 		}
 	}
 }

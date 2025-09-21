@@ -11,5 +11,6 @@ createApp(
 		eventUrl: 'https://pretalx.com/democon/',
 		locale: 'en-ie',
 		// format: 'list',
+		format: 'grid',
 	}
 ).use(Buntpapier).mount('#app')

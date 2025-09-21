@@ -49,3 +49,21 @@ export function getSessionTime(session, timezone, locale, hasAmPm) {
 		}
 	}
 }
+
+export async function fetchSchedule(eventUrl, version) {
+	let versionPath = ''
+	if (version)
+		versionPath = `v/${version}/`
+	const url = `${eventUrl}schedule/${versionPath}widgets/schedule.json`
+	const legacyUrl = `${eventUrl}schedule/${versionPath}widget/v2.json`
+
+	try {
+		return await (await fetch(url)).json()
+	} catch (e) {
+		try {
+			return await (await fetch(legacyUrl)).json()
+		} catch (e) {
+			throw new Error('Failed to fetch schedule from both URLs')
+		}
+	}
+}
