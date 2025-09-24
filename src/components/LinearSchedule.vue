@@ -60,7 +60,7 @@ export default {
 				}
 				if (!session.id) {
 					// Remove duplicate breaks, meaning same start, end and text
-					session.break_id = `${session.start}${session.end}${session.title}`
+					session.break_id = `${session.start}${session.end}${getLocalizedString(session.title)}`
 					if (buckets[key].filter(s => s.break_id === session.break_id).length === 0) buckets[key].push(session)
 				} else {
 					buckets[key].push(session)
