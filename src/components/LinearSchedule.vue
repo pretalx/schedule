@@ -93,16 +93,6 @@ export default {
 			this.observer.observe(el[0])
 		}
 		// scroll to now
-		// scroll to now, unless URL overrides now
-		let fragmentIsDate = false
-		const fragment = window.location.hash.slice(1)
-		if (fragment && fragment.length === 10) {
-			const initialDay = DateTime.fromISO(fragment, {zone: this.timezone})
-			if (initialDay) {
-				fragmentIsDate = true
-			}
-		}
-		if (fragmentIsDate) return
 		const nowIndex = this.sessionBuckets.findIndex(bucket => this.now < bucket.date)
 		// do not scroll if the event has not started yet
 		if (nowIndex < 0) return

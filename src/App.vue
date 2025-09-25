@@ -263,8 +263,6 @@ export default {
 		}
 	},
 	async created () {
-		// Gotta get the fragment early, before anything else sneakily modifies it
-		const fragment = window.location.hash.slice(1)
 		Settings.defaultLocale = this.locale
 		this.userTimezone = DateTime.local().zoneName
 
@@ -292,13 +290,6 @@ export default {
 		this.apiUrl = window.location.origin + '/api/events/' + this.eventSlug + '/'
 		this.favs = this.pruneFavs(await this.loadFavs(), this.schedule)
 
-		if (fragment && fragment.length === 10) {
-			const initialDay = DateTime.fromISO(fragment, { zone: this.currentTimezone })
-			const filteredDays = this.days.filter(d => d.setZone(this.timezone).toISODate() === initialDay.toISODate())
-			if (filteredDays.length) {
-				this.currentDay = filteredDays[0].toISODate()
-			}
-		}
 
 		this.versionPollInterval = setInterval(() => {
 			this.checkForScheduleUpdate()
@@ -359,7 +350,6 @@ export default {
 		},
 		changeDay (day) {
 			this.currentDay = day.startOf('day').toISODate()
-			window.location.hash = day.toISODate()
 			// Manually trigger scroll in schedule components
 			if (this.$refs.gridScheduleWrapper && this.$refs.gridScheduleWrapper.changeDay) {
 				this.$refs.gridScheduleWrapper.changeDay(day.toISODate())

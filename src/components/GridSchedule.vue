@@ -256,16 +256,8 @@ export default {
 	async mounted () {
 		this.setupIntersectionObserver()
 		await this.$nextTick()
-		// scroll to now, unless URL overrides now
-		let fragmentIsDate = false
-		const fragment = window.location.hash.slice(1)
-		if (fragment && fragment.length === 10) {
-			const initialDay = DateTime.fromISO(fragment, { zone: this.timezone })
-			if (initialDay) {
-				fragmentIsDate = true
-			}
-		}
-		if (fragmentIsDate || !this.$refs.now) return
+		// scroll to now
+		if (!this.$refs.now) return
 		const scrollTop = this.$refs.now.offsetTop + this.getOffsetTop()
 		if (this.scrollParent) {
 			this.scrollParent.scrollTop = scrollTop
