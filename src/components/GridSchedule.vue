@@ -316,7 +316,6 @@ export default {
 			return slice.date.setZone(this.timezone).toLocaleString({ hour: 'numeric', minute: 'numeric' })
 		},
 		changeDay (day) {
-			if (this.getScrolledDay()?.toISODate() === day) return
 			const el = this.$refs[getSliceName(DateTime.fromISO(day))]?.[0]
 			this.programmaticScrollTo(el)
 		},

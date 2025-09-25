@@ -112,7 +112,6 @@ export default {
 			return `bucket-${date.toFormat('yyyy-LL-dd-HH-mm')}`
 		},
 		changeDay (day) {
-			if (this.scrolledDay?.toISODate() === day) return
 			const dayBucket = this.sessionBuckets.find(bucket => day === bucket.date.toISODate())
 			if (!dayBucket) return
 			const el = this.$refs[this.getBucketName(dayBucket.date)]?.[0]
