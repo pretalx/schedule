@@ -74,7 +74,8 @@ export default {
 			getLocalizedString,
 			getPrettyDuration,
 			timeWithoutAmPm,
-			timeAmPm
+			timeAmPm,
+			programmaticScroll: false
 		}
 	},
 	computed: {
@@ -244,9 +245,6 @@ export default {
 			return null
 		}
 	},
-	watch: {
-		currentDay: 'changeDay'
-	},
 	async mounted () {
 		this.observer = new IntersectionObserver(this.onIntersect, {
 			root: this.scrollParent,
@@ -331,26 +329,37 @@ export default {
 			if (this.getScrolledDay()?.toISODate() === day) return
 			const el = this.$refs[getSliceName(DateTime.fromISO(day))]?.[0]
 			if (!el) return
+
+			// Temporarily disable intersection observer during programmatic scroll
+			this.programmaticScroll = true
 			const offset = el.offsetTop + this.getOffsetTop()
 			if (this.scrollParent) {
 				this.scrollParent.scrollTop = offset
 			} else {
 				window.scroll({top: offset})
 			}
+
+			// Re-enable intersection observer after scroll completes
+			setTimeout(() => {
+				this.programmaticScroll = false
+			}, 100)
 		},
 		onIntersect (entries) {
+			// Skip if we're doing programmatic scroll to avoid interference with tab clicks
+			if (this.programmaticScroll) return
+
 			// TODO still gets stuck when scrolling fast above threshold and back
 			const entry = entries.sort((a, b) => b.ts - a.ts).find(entry => entry.isIntersecting)
 			if (!entry) return
-			
+
 			const originalDate = DateTime.fromISO(entry.target.dataset.slice)
 			// Preserve the calendar date when converting timezones for day boundaries
 			const day = DateTime.fromObject({
 				year: originalDate.year,
-				month: originalDate.month, 
+				month: originalDate.month,
 				day: originalDate.day
 			}, { zone: this.timezone })
-			
+
 			if (day.toISODate() !== this.currentDay) {
 				this.$emit('changeDay', day)
 			}

@@ -20,6 +20,7 @@
 		bunt-tabs.days(v-if="days && days.length > 1", v-model="currentDay", ref="tabs" :class="showGrid? ['grid-tabs'] : ['list-tabs']")
 			bunt-tab(v-for="day in days", :id="day.toISODate()", :header="day.toLocaleString(dateFormat)", @selected="changeDay(day)")
 		grid-schedule-wrapper(v-if="showGrid",
+			ref="gridScheduleWrapper",
 			:sessions="sessions",
 			:rooms="rooms",
 			:days="days",
@@ -35,6 +36,7 @@
 			@fav="fav($event)",
 			@unfav="unfav($event)")
 		linear-schedule(v-else,
+			ref="linearSchedule",
 			:sessions="sessions",
 			:rooms="rooms",
 			:currentDay="currentDay",
@@ -338,15 +340,22 @@ export default {
 	methods: {
 		setCurrentDay (day) {
 			// Find best match among days, because timezones can muddle this
+			// This is called from scroll detection - should not trigger auto-scroll
 			const matchingDays = this.days.filter(d => d.ts === day.ts)
 			if (matchingDays.length) {
 				this.currentDay = matchingDays[0].toISODate()
 			}
 		},
 		changeDay (day) {
-			if (day.startOf('day').toISODate() === this.currentDay) return
 			this.currentDay = day.startOf('day').toISODate()
 			window.location.hash = day.toISODate()
+			// Manually trigger scroll in schedule components
+			if (this.$refs.gridScheduleWrapper && this.$refs.gridScheduleWrapper.changeDay) {
+				this.$refs.gridScheduleWrapper.changeDay(day.toISODate())
+			}
+			if (this.$refs.linearSchedule && this.$refs.linearSchedule.changeDay) {
+				this.$refs.linearSchedule.changeDay(day.toISODate())
+			}
 		},
 		onWindowResize () {
 			this.scrollParentWidth = document.body.offsetWidth

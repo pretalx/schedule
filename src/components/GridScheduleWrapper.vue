@@ -1,8 +1,9 @@
 <template lang="pug">
 .c-grid-schedule-wrapper
 	grid-schedule(
-		v-for="group in gridGroups",
+		v-for="(group, index) in gridGroups",
 		:key="group.days.join('-')",
+		:ref="'gridSchedule' + index",
 		:sessions="group.sessions",
 		:rooms="group.rooms",
 		:currentDay="currentDay",
@@ -102,5 +103,16 @@ export default {
 			return mergedGroups
 		}
 	},
+	methods: {
+		changeDay (day) {
+			// Call changeDay on all GridSchedule children using refs
+			for (let i = 0; i < this.gridGroups.length; i++) {
+				const childRef = this.$refs['gridSchedule' + i]
+				if (childRef && childRef[0] && childRef[0].changeDay) {
+					childRef[0].changeDay(day)
+				}
+			}
+		}
+	}
 }
 </script>
