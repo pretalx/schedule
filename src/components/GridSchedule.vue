@@ -245,17 +245,16 @@ export default {
 			return null
 		}
 	},
-	async mounted () {
-		this.observer = new IntersectionObserver(this.onIntersect, {
-			root: this.scrollParent,
-			rootMargin: '-45% 0px'
-		})
-		for (const [ref, el] of Object.entries(this.$refs)) {
-			if (!ref.startsWith('slice')) continue
-			const slice = this.timeslices.find(s => s.name === ref)
-			if (!slice || !slice.datebreak) continue
-			this.observer.observe(el[0])
+	watch: {
+		timezone() {
+			// Rebuild intersection observer when timezone changes since datebreak slices may change
+			this.$nextTick(() => {
+				this.setupIntersectionObserver()
+			})
 		}
+	},
+	async mounted () {
+		this.setupIntersectionObserver()
 		await this.$nextTick()
 		// scroll to now, unless URL overrides now
 		let fragmentIsDate = false
@@ -275,6 +274,26 @@ export default {
 		}
 	},
 	methods: {
+		setupIntersectionObserver() {
+			// Disconnect existing observer if it exists
+			if (this.observer) {
+				this.observer.disconnect()
+			}
+			
+			// Create new intersection observer
+			this.observer = new IntersectionObserver(this.onIntersect, {
+				root: this.scrollParent,
+				rootMargin: '-45% 0px'
+			})
+			
+			// Observe only datebreak slices
+			for (const [ref, el] of Object.entries(this.$refs)) {
+				if (!ref.startsWith('slice')) continue
+				const slice = this.timeslices.find(s => s.name === ref)
+				if (!slice || !slice.datebreak) continue
+				this.observer.observe(el[0])
+			}
+		},
 		isProperSession (session) {
 			// breaks and such don't have ids
 			return !!session.id
