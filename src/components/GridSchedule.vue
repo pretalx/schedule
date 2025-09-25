@@ -85,6 +85,7 @@ export default {
 			const minimumSliceMins = 30
 			const slices = []
 			const slicesLookup = {}
+			const timezone = this.timezone
 			const pushSlice = function (date, {hasSession = false, hasBreak = false, hasStart = false, hasEnd = false} = {}) {
 				const name = getSliceName(date)
 				let slice = slicesLookup[name]
@@ -101,7 +102,7 @@ export default {
 						hasBreak,
 						hasStart,
 						hasEnd,
-						datebreak: date.equals(date.startOf('day'))
+						datebreak: date.setZone(timezone).equals(date.setZone(timezone).startOf('day'))
 					}
 					slices.push(slice)
 					slicesLookup[name] = slice
@@ -135,7 +136,7 @@ export default {
 				const lastSlice = slices[slices.length - 1]
 				// gap to last slice
 				if (!lastSlice) {
-					pushSlice(session.start.startOf('day'))
+					pushSlice(session.start.setZone(timezone).startOf('day'))
 				} else if (session.start > lastSlice.date) {
 					fillHalfHours(lastSlice.date, session.start)
 				}
@@ -309,7 +310,7 @@ export default {
 		},
 		getSliceStyle (slice) {
 			if (slice.datebreak) {
-				let index = this.timeslices.findIndex(s => s.date.startOf('day') > slice.date.startOf('day'))
+				let index = this.timeslices.findIndex(s => s.date.setZone(this.timezone).startOf('day') > slice.date.setZone(this.timezone).startOf('day'))
 				if (index < 0) {
 					index = this.timeslices.length - 1
 				}
@@ -339,7 +340,7 @@ export default {
 			// TODO still gets stuck when scrolling fast above threshold and back
 			const entry = entries.sort((a, b) => b.ts - a.ts).find(entry => entry.isIntersecting)
 			if (!entry) return
-			const day = DateTime.fromISO(entry.target.dataset.slice).startOf('day')
+			const day = DateTime.fromISO(entry.target.dataset.slice).setZone(this.timezone).startOf('day')
 			if (day.toISODate() !== this.currentDay) {
 				this.$emit('changeDay', day)
 			}
