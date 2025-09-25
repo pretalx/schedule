@@ -22,11 +22,13 @@
 </template>
 <script>
 import { DateTime } from 'luxon'
-import { getLocalizedString } from '~/utils'
+import { getLocalizedString, isProperSession } from '~/utils'
+import scheduleScrollMixin from '~/mixins/scheduleScroll'
 import Session from './Session'
 
 export default {
 	components: { Session },
+	mixins: [scheduleScrollMixin],
 	props: {
 		sessions: Array,
 		rooms: Array,
@@ -47,8 +49,7 @@ export default {
 	data () {
 		return {
 			getLocalizedString,
-			scrolledDay: null,
-			programmaticScroll: false
+			isProperSession
 		}
 	},
 	computed: {
@@ -74,14 +75,6 @@ export default {
 			}))
 		}
 	},
-	watch: {
-		timezone() {
-			// Rebuild intersection observer when timezone changes
-			this.$nextTick(() => {
-				this.setupIntersectionObserver()
-			})
-		}
-	},
 	async mounted () {
 		await this.$nextTick()
 		this.setupIntersectionObserver()
@@ -90,27 +83,20 @@ export default {
 		// do not scroll if the event has not started yet
 		if (nowIndex < 0) return
 		const nowBucket = this.sessionBuckets[Math.max(0, nowIndex - 1)]
-		const scrollTop = this.$refs[this.getBucketName(nowBucket.date)]?.[0]?.offsetTop - 90
-		if (this.scrollParent) {
-			this.scrollParent.scrollTop = scrollTop
-		} else {
-			window.scroll({top: scrollTop + this.getOffsetTop()})
+		const el = this.$refs[this.getBucketName(nowBucket.date)]?.[0]
+		if (el) {
+			const scrollTop = el.offsetTop - 90
+			if (this.scrollParent) {
+				this.scrollParent.scrollTop = scrollTop
+			} else {
+				const rect = this.$parent.$el.getBoundingClientRect()
+				window.scroll({top: scrollTop + rect.top + window.scrollY})
+			}
 		}
 	},
 	methods: {
-		setupIntersectionObserver() {
-			// Disconnect existing observer if it exists
-			if (this.observer) {
-				this.observer.disconnect()
-			}
-			
-			// Create new intersection observer
-			this.observer = new IntersectionObserver(this.onIntersect, {
-				root: this.scrollParent,
-				rootMargin: '-45% 0px'
-			})
-			
-			// Observe day boundary buckets
+		observeElements() {
+			// LinearSchedule-specific: observe day boundary buckets
 			let lastBucket
 			for (const [ref, el] of Object.entries(this.$refs)) {
 				if (!ref.startsWith('bucket')) continue
@@ -122,59 +108,20 @@ export default {
 				this.observer.observe(el[0])
 			}
 		},
-		isProperSession (session) {
-			// breaks and such don't have ids
-			return !!session.id
-		},
 		getBucketName (date) {
 			return `bucket-${date.toFormat('yyyy-LL-dd-HH-mm')}`
-		},
-		getOffsetTop () {
-			const rect = this.$parent.$el.getBoundingClientRect()
-			return rect.top + window.scrollY
 		},
 		changeDay (day) {
 			if (this.scrolledDay?.toISODate() === day) return
 			const dayBucket = this.sessionBuckets.find(bucket => day === bucket.date.toISODate())
 			if (!dayBucket) return
 			const el = this.$refs[this.getBucketName(dayBucket.date)]?.[0]
-			if (!el) return
-
-			// Temporarily disable intersection observer during programmatic scroll
-			this.programmaticScroll = true
-			const scrollTop = el.offsetTop + this.getOffsetTop() - 8
-			if (this.scrollParent) {
-				this.scrollParent.scrollTop = scrollTop
-			} else {
-				window.scroll({top: scrollTop})
-			}
-
-			// Re-enable intersection observer after scroll completes
-			setTimeout(() => {
-				this.programmaticScroll = false
-			}, 100)
+			this.programmaticScrollTo(el)
 		},
-		onIntersect (results) {
-			// Skip if we're doing programmatic scroll to avoid interference with tab clicks
-			if (this.programmaticScroll) return
-
-			const intersection = results[0]
-			const originalDate = DateTime.fromISO(intersection.target.dataset.date)
-			// Preserve the calendar date when converting timezones for day boundaries
-			const day = DateTime.fromObject({
-				year: originalDate.year,
-				month: originalDate.month,
-				day: originalDate.day
-			}, { zone: this.timezone })
-
-			if (intersection.isIntersecting) {
-				this.scrolledDay = day
-				this.$emit('changeDay', this.scrolledDay)
-			} else if (intersection.rootBounds && (intersection.boundingClientRect.y - intersection.rootBounds.y) > 0) {
-				this.scrolledDay = day.minus({days: 1})
-				this.$emit('changeDay', this.scrolledDay)
-			}
-		}
+		calculateScrollTop(element) {
+			const rect = this.$parent.$el.getBoundingClientRect()
+			return element.offsetTop + rect.top + window.scrollY - 8
+		},
 	}
 }
 </script>

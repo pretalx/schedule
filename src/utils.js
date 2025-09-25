@@ -50,6 +50,11 @@ export function getSessionTime(session, timezone, locale, hasAmPm) {
 	}
 }
 
+export function isProperSession (session) {
+	// breaks and such don't have ids
+	return !!session.id
+}
+
 export async function fetchSchedule(eventUrl, version) {
 	let versionPath = ''
 	if (version)

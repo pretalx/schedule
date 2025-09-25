@@ -44,7 +44,8 @@
 // - optionally only show venueless rooms
 import { DateTime } from 'luxon'
 import Session from './Session'
-import { getLocalizedString, getPrettyDuration, timeWithoutAmPm, timeAmPm} from '~/utils'
+import { getLocalizedString, getPrettyDuration, timeWithoutAmPm, timeAmPm, isProperSession} from '~/utils'
+import scheduleScrollMixin from '~/mixins/scheduleScroll'
 
 const getSliceName = function (date) {
 	return `slice-${date.toFormat('LL-dd-HH-mm')}`
@@ -52,6 +53,7 @@ const getSliceName = function (date) {
 
 export default {
 	components: { Session },
+	mixins: [scheduleScrollMixin],
 	props: {
 		sessions: Array,
 		rooms: Array,
@@ -75,7 +77,7 @@ export default {
 			getPrettyDuration,
 			timeWithoutAmPm,
 			timeAmPm,
-			programmaticScroll: false
+			isProperSession
 		}
 	},
 	computed: {
@@ -245,14 +247,6 @@ export default {
 			return null
 		}
 	},
-	watch: {
-		timezone() {
-			// Rebuild intersection observer when timezone changes since datebreak slices may change
-			this.$nextTick(() => {
-				this.setupIntersectionObserver()
-			})
-		}
-	},
 	async mounted () {
 		this.setupIntersectionObserver()
 		await this.$nextTick()
@@ -266,29 +260,14 @@ export default {
 		}
 	},
 	methods: {
-		setupIntersectionObserver() {
-			// Disconnect existing observer if it exists
-			if (this.observer) {
-				this.observer.disconnect()
-			}
-
-			// Create new intersection observer
-			this.observer = new IntersectionObserver(this.onIntersect, {
-				root: this.scrollParent,
-				rootMargin: '-45% 0px'
-			})
-
-			// Observe only datebreak slices
+		observeElements() {
+			// GridSchedule-specific: observe only datebreak slices
 			for (const [ref, el] of Object.entries(this.$refs)) {
 				if (!ref.startsWith('slice')) continue
 				const slice = this.timeslices.find(s => s.name === ref)
 				if (!slice || !slice.datebreak) continue
 				this.observer.observe(el[0])
 			}
-		},
-		isProperSession (session) {
-			// breaks and such don't have ids
-			return !!session.id
 		},
 		getSessionStyle (session) {
 			const roomIndex = this.rooms.indexOf(session.room)
@@ -339,21 +318,10 @@ export default {
 		changeDay (day) {
 			if (this.getScrolledDay()?.toISODate() === day) return
 			const el = this.$refs[getSliceName(DateTime.fromISO(day))]?.[0]
-			if (!el) return
-
-			// Temporarily disable intersection observer during programmatic scroll
-			this.programmaticScroll = true
-			const offset = el.offsetTop + this.getOffsetTop()
-			if (this.scrollParent) {
-				this.scrollParent.scrollTop = offset
-			} else {
-				window.scroll({top: offset})
-			}
-
-			// Re-enable intersection observer after scroll completes
-			setTimeout(() => {
-				this.programmaticScroll = false
-			}, 100)
+			this.programmaticScrollTo(el)
+		},
+		calculateScrollTop(element) {
+			return element.offsetTop + this.getOffsetTop()
 		},
 		onIntersect (entries) {
 			// Skip if we're doing programmatic scroll to avoid interference with tab clicks
@@ -373,7 +341,7 @@ export default {
 			if (day.toISODate() !== this.currentDay) {
 				this.$emit('changeDay', day)
 			}
-		}
+		},
 	}
 }
 </script>
