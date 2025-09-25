@@ -18,7 +18,7 @@
 			@saveTimezone="saveTimezone"
 		)
 		bunt-tabs.days(v-if="days && days.length > 1", v-model="currentDay", ref="tabs" :class="showGrid? ['grid-tabs'] : ['list-tabs']")
-			bunt-tab(v-for="day in days", :id="day.toISODate()", :header="day.toLocaleString(dateFormat)", @selected="changeDay(day)")
+			bunt-tab(v-for="day in days", :id="day.toISODate()", :header="day.toLocaleString(dateFormat)", @selected="onTabSelected(day)")
 		grid-schedule-wrapper(v-if="showGrid",
 			ref="gridScheduleWrapper",
 			:sessions="sessions",
@@ -141,6 +141,7 @@ export default {
 			currentTimezone: null,
 			favs: [],
 			selectedTrackIds: [],
+			updatingFromScroll: false,
 			onlyFavs: false,
 			scheduleError: false,
 			onHomeServer: false,
@@ -343,8 +344,18 @@ export default {
 			// This is called from scroll detection - should not trigger auto-scroll
 			const matchingDays = this.days.filter(d => d.ts === day.ts)
 			if (matchingDays.length) {
+				this.updatingFromScroll = true
 				this.currentDay = matchingDays[0].toISODate()
+				this.$nextTick(() => {
+					this.updatingFromScroll = false
+				})
 			}
+		},
+		onTabSelected (day) {
+			if (this.updatingFromScroll) {
+				return
+			}
+			this.changeDay(day)
 		},
 		changeDay (day) {
 			this.currentDay = day.startOf('day').toISODate()
