@@ -253,7 +253,9 @@ export default {
 			rootMargin: '-45% 0px'
 		})
 		for (const [ref, el] of Object.entries(this.$refs)) {
-			if (!ref.startsWith('slice') || !ref.endsWith('00-00')) continue
+			if (!ref.startsWith('slice')) continue
+			const slice = this.timeslices.find(s => s.name === ref)
+			if (!slice || !slice.datebreak) continue
 			this.observer.observe(el[0])
 		}
 		await this.$nextTick()
@@ -340,7 +342,15 @@ export default {
 			// TODO still gets stuck when scrolling fast above threshold and back
 			const entry = entries.sort((a, b) => b.ts - a.ts).find(entry => entry.isIntersecting)
 			if (!entry) return
-			const day = DateTime.fromISO(entry.target.dataset.slice).setZone(this.timezone).startOf('day')
+			
+			const originalDate = DateTime.fromISO(entry.target.dataset.slice)
+			// Preserve the calendar date when converting timezones for day boundaries
+			const day = DateTime.fromObject({
+				year: originalDate.year,
+				month: originalDate.month, 
+				day: originalDate.day
+			}, { zone: this.timezone })
+			
 			if (day.toISODate() !== this.currentDay) {
 				this.$emit('changeDay', day)
 			}
