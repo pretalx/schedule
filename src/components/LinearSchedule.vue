@@ -47,7 +47,8 @@ export default {
 	data () {
 		return {
 			getLocalizedString,
-			scrolledDay: null
+			scrolledDay: null,
+			programmaticScroll: false
 		}
 	},
 	computed: {
@@ -74,24 +75,16 @@ export default {
 		}
 	},
 	watch: {
-		currentDay: 'changeDay'
+		timezone() {
+			// Rebuild intersection observer when timezone changes
+			this.$nextTick(() => {
+				this.setupIntersectionObserver()
+			})
+		}
 	},
 	async mounted () {
 		await this.$nextTick()
-		this.observer = new IntersectionObserver(this.onIntersect, {
-			root: this.scrollParent,
-			rootMargin: '-45% 0px'
-		})
-		let lastBucket
-		for (const [ref, el] of Object.entries(this.$refs)) {
-			if (!ref.startsWith('bucket')) continue
-			const date = DateTime.fromISO(el[0].dataset.date, {zone: this.timezone})
-			if (lastBucket) {
-				if (lastBucket.toISODate() === date.toISODate()) continue
-			}
-			lastBucket = date
-			this.observer.observe(el[0])
-		}
+		this.setupIntersectionObserver()
 		// scroll to now
 		const nowIndex = this.sessionBuckets.findIndex(bucket => this.now < bucket.date)
 		// do not scroll if the event has not started yet
@@ -105,6 +98,30 @@ export default {
 		}
 	},
 	methods: {
+		setupIntersectionObserver() {
+			// Disconnect existing observer if it exists
+			if (this.observer) {
+				this.observer.disconnect()
+			}
+			
+			// Create new intersection observer
+			this.observer = new IntersectionObserver(this.onIntersect, {
+				root: this.scrollParent,
+				rootMargin: '-45% 0px'
+			})
+			
+			// Observe day boundary buckets
+			let lastBucket
+			for (const [ref, el] of Object.entries(this.$refs)) {
+				if (!ref.startsWith('bucket')) continue
+				const date = DateTime.fromISO(el[0].dataset.date, {zone: this.timezone})
+				if (lastBucket) {
+					if (lastBucket.toISODate() === date.toISODate()) continue
+				}
+				lastBucket = date
+				this.observer.observe(el[0])
+			}
+		},
 		isProperSession (session) {
 			// breaks and such don't have ids
 			return !!session.id
@@ -122,16 +139,34 @@ export default {
 			if (!dayBucket) return
 			const el = this.$refs[this.getBucketName(dayBucket.date)]?.[0]
 			if (!el) return
+
+			// Temporarily disable intersection observer during programmatic scroll
+			this.programmaticScroll = true
 			const scrollTop = el.offsetTop + this.getOffsetTop() - 8
 			if (this.scrollParent) {
 				this.scrollParent.scrollTop = scrollTop
 			} else {
 				window.scroll({top: scrollTop})
 			}
+
+			// Re-enable intersection observer after scroll completes
+			setTimeout(() => {
+				this.programmaticScroll = false
+			}, 100)
 		},
 		onIntersect (results) {
+			// Skip if we're doing programmatic scroll to avoid interference with tab clicks
+			if (this.programmaticScroll) return
+
 			const intersection = results[0]
-			const day = DateTime.fromISO(intersection.target.dataset.date, {zone: this.timezone}).startOf('day')
+			const originalDate = DateTime.fromISO(intersection.target.dataset.date)
+			// Preserve the calendar date when converting timezones for day boundaries
+			const day = DateTime.fromObject({
+				year: originalDate.year,
+				month: originalDate.month,
+				day: originalDate.day
+			}, { zone: this.timezone })
+
 			if (intersection.isIntersecting) {
 				this.scrolledDay = day
 				this.$emit('changeDay', this.scrolledDay)

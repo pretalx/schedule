@@ -271,13 +271,13 @@ export default {
 			if (this.observer) {
 				this.observer.disconnect()
 			}
-			
+
 			// Create new intersection observer
 			this.observer = new IntersectionObserver(this.onIntersect, {
 				root: this.scrollParent,
 				rootMargin: '-45% 0px'
 			})
-			
+
 			// Observe only datebreak slices
 			for (const [ref, el] of Object.entries(this.$refs)) {
 				if (!ref.startsWith('slice')) continue
@@ -359,7 +359,6 @@ export default {
 			// Skip if we're doing programmatic scroll to avoid interference with tab clicks
 			if (this.programmaticScroll) return
 
-			// TODO still gets stuck when scrolling fast above threshold and back
 			const entry = entries.sort((a, b) => b.ts - a.ts).find(entry => entry.isIntersecting)
 			if (!entry) return
 
