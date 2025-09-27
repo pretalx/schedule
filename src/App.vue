@@ -254,6 +254,14 @@ export default {
 			return `${eventUrlObj.protocol}//${eventUrlObj.host}/api/events/${this.eventSlug}/`
 		},
 	},
+	watch: {
+		currentTimezone () {
+			// When timezone changes, select the first day
+			this.$nextTick(() => {
+				this.setCurrentDay(this.days[0])
+			})
+		}
+	},
 	async created () {
 		Settings.defaultLocale = this.locale
 		this.userTimezone = DateTime.local().zoneName

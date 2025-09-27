@@ -102,6 +102,7 @@ export default {
 			let lastBucket
 			for (const [ref, el] of Object.entries(this.$refs)) {
 				if (!ref.startsWith('bucket')) continue
+				if (!el || !el[0]) continue
 				const date = DateTime.fromISO(el[0].dataset.date, { zone: this.timezone })
 				if (lastBucket) {
 					if (lastBucket.toISODate() === date.toISODate()) continue
@@ -120,7 +121,7 @@ export default {
 				return day === bucketDate
 			})
 			if (!dayBucket) return
-			
+
 			const el = this.$refs[this.getBucketName(dayBucket.date)]?.[0]
 			if (el) {
 				this.programmaticScrollTo(el)
