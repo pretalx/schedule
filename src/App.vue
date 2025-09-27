@@ -5,7 +5,7 @@
 			.error-message An error occurred while loading the schedule. Please try again later.
 	template(v-else-if="schedule && sessions.length")
 		schedule-settings(
-			:tracks="schedule.tracks",
+			:tracks="schedule?.tracks || []",
 			:filteredTracksCount="filteredTracks.length",
 			:favsCount="favs.length",
 			:onlyFavs="onlyFavs",
@@ -58,8 +58,9 @@
 	#bunt-teleport-target(ref="teleportTarget")
 	filter-modal(
 		ref="filterModal",
-		:tracks="tracks",
-		@trackToggled="onlyFavs = false"
+		:tracks="schedule?.tracks || []",
+		:selectedTrackIds="selectedTrackIds",
+		@trackToggled="onTrackToggled"
 	)
 	session-modal(
 		ref="sessionModal",
@@ -171,8 +172,8 @@ export default {
 			return this.schedule.tracks.reduce((acc, t) => { acc[t.id] = t; return acc }, {})
 		},
 		filteredTracks () {
-			if (this.selectedTrackIds.length === 0) return []
-			return this.tracks.filter(t => this.selectedTrackIds.includes(t.id))
+			if (this.selectedTrackIds.length === 0 || !this.schedule?.tracks) return []
+			return this.schedule.tracks.filter(t => this.selectedTrackIds.includes(t.id))
 		},
 		speakersLookup () {
 			if (!this.schedule) return {}
@@ -252,15 +253,6 @@ export default {
 			const eventUrlObj = new URL(this.eventUrl)
 			return `${eventUrlObj.protocol}//${eventUrlObj.host}/api/events/${this.eventSlug}/`
 		},
-		tracks () {
-			if (!this.schedule) return []
-			return this.schedule.tracks.map(t => ({
-				...t,
-				value: t.id,
-				label: getLocalizedString(t.name),
-				selected: this.selectedTrackIds.includes(t.id)
-			}))
-		}
 	},
 	async created () {
 		Settings.defaultLocale = this.locale
@@ -580,6 +572,14 @@ export default {
 		},
 		onTrackFilterChange (selectedIds) {
 			this.selectedTrackIds = selectedIds
+			this.onlyFavs = false
+		},
+		onTrackToggled (trackId) {
+			if (this.selectedTrackIds.includes(trackId)) {
+				this.selectedTrackIds = this.selectedTrackIds.filter(id => id !== trackId)
+			} else {
+				this.selectedTrackIds.push(trackId)
+			}
 			this.onlyFavs = false
 		},
 		async checkForScheduleUpdate () {

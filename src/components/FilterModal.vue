@@ -3,8 +3,8 @@ dialog.pretalx-modal#filter-modal(ref="modal", @click.stop="close()")
 	.dialog-inner(@click.stop="")
 		button.close-button(@click="close()") ✕
 		h3 Tracks
-		.checkbox-line(v-for="track in tracks", :key="track.value", :style="{'--track-color': track.color}")
-			bunt-checkbox(type="checkbox", :label="track.label", :name="track.value + track.label", v-model="track.selected", :value="track.value", @input="$emit('trackToggled')")
+		.checkbox-line(v-for="track in tracks", :key="track.id", :style="{'--track-color': track.color}")
+			bunt-checkbox(type="checkbox", :label="getLocalizedString(track.name)", :name="track.id + '-checkbox'", v-model="trackSelections[track.id]", @input="onTrackToggle(track.id)")
 			.track-description(v-if="getLocalizedString(track.description).length") {{ getLocalizedString(track.description) }}
 </template>
 
@@ -17,12 +17,34 @@ export default {
 		tracks: {
 			type: Array,
 			default: () => []
+		},
+		selectedTrackIds: {
+			type: Array,
+			default: () => []
 		}
 	},
 	emits: ['trackToggled'],
 	data () {
 		return {
-			getLocalizedString
+			getLocalizedString,
+			localSelectedTrackIds: [...this.selectedTrackIds]
+		}
+	},
+	watch: {
+		selectedTrackIds: {
+			handler(newVal) {
+				this.localSelectedTrackIds = [...newVal]
+			},
+			immediate: true
+		}
+	},
+	computed: {
+		trackSelections() {
+			const selections = {}
+			this.tracks.forEach(track => {
+				selections[track.id] = this.localSelectedTrackIds.includes(track.id)
+			})
+			return selections
 		}
 	},
 	methods: {
@@ -31,6 +53,16 @@ export default {
 		},
 		close () {
 			this.$refs.modal?.close()
+		},
+		onTrackToggle (trackId) {
+			// Update local state immediately for UI responsiveness
+			if (this.localSelectedTrackIds.includes(trackId)) {
+				this.localSelectedTrackIds = this.localSelectedTrackIds.filter(id => id !== trackId)
+			} else {
+				this.localSelectedTrackIds.push(trackId)
+			}
+
+			this.$emit('trackToggled', trackId)
 		}
 	}
 }
