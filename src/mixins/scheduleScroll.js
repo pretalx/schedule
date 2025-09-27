@@ -42,7 +42,8 @@ export default {
 			const intersection = results[0]
 			if (!intersection) return
 
-			const originalDate = DateTime.fromISO(intersection.target.dataset.date || intersection.target.dataset.slice)
+			// Parse the date with the correct timezone context
+			const originalDate = DateTime.fromISO(intersection.target.dataset.date || intersection.target.dataset.slice, { zone: this.timezone })
 			// Preserve the calendar date when converting timezones for day boundaries
 			const day = DateTime.fromObject({
 				year: originalDate.year,

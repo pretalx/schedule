@@ -310,14 +310,25 @@ export default {
 		},
 		getSliceLabel (slice) {
 			if (slice.datebreak) {
-				const date = slice.date
+				const date = slice.date.setZone(this.timezone)
 				return date.toLocaleString({ weekday: 'short' }) + '\n' + date.toLocaleString({ day: 'numeric', month: 'short' })
 			}
 			return slice.date.setZone(this.timezone).toLocaleString({ hour: 'numeric', minute: 'numeric' })
 		},
 		changeDay (day) {
-			const el = this.$refs[getSliceName(DateTime.fromISO(day))]?.[0]
-			this.programmaticScrollTo(el)
+			// Look for a datebreak slice that matches the target day
+			const targetSlice = this.timeslices.find(slice => {
+				if (!slice.datebreak) return false
+				const sliceDay = slice.date.setZone(this.timezone).toISODate()
+				return sliceDay === day
+			})
+			
+			if (targetSlice) {
+				const el = this.$refs[targetSlice.name]?.[0]
+				if (el) {
+					this.programmaticScrollTo(el)
+				}
+			}
 		},
 		calculateScrollTop(element) {
 			return element.offsetTop + this.getOffsetTop()
@@ -329,7 +340,8 @@ export default {
 			const entry = entries.sort((a, b) => b.ts - a.ts).find(entry => entry.isIntersecting)
 			if (!entry) return
 
-			const originalDate = DateTime.fromISO(entry.target.dataset.slice)
+			// Parse the date with the correct timezone context
+			const originalDate = DateTime.fromISO(entry.target.dataset.slice, { zone: this.timezone })
 			// Preserve the calendar date when converting timezones for day boundaries
 			const day = DateTime.fromObject({
 				year: originalDate.year,

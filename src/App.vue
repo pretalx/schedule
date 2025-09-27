@@ -332,6 +332,15 @@ export default {
 				this.$nextTick(() => {
 					this.updatingFromScroll = false
 				})
+			} else {
+				const isoMatchingDays = this.days.filter(d => d.toISODate() === day.toISODate())
+				if (isoMatchingDays.length) {
+					this.updatingFromScroll = true
+					this.currentDay = isoMatchingDays[0].toISODate()
+					this.$nextTick(() => {
+						this.updatingFromScroll = false
+					})
+				}
 			}
 		},
 		onTabSelected (day) {

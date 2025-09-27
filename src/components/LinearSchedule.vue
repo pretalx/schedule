@@ -56,7 +56,9 @@ export default {
 		sessionBuckets () {
 			const buckets = {}
 			for (const session of this.sessions) {
-				const key = this.getBucketName(session.start)
+				// Convert session start to current timezone for consistent grouping
+				const sessionInTimezone = session.start.setZone(this.timezone)
+				const key = this.getBucketName(sessionInTimezone)
 				if (!buckets[key]) {
 					buckets[key] = []
 				}
@@ -69,7 +71,7 @@ export default {
 				}
 			}
 			return Object.entries(buckets).map(([date, sessions]) => ({
-				date: sessions[0].start,
+				date: sessions[0].start.setZone(this.timezone),
 				// sort by room for stable sort across time buckets
 				sessions: sessions.sort((a, b) => this.rooms.findIndex(room => room.id === a.room.id) - this.rooms.findIndex(room => room.id === b.room.id))
 			}))
@@ -100,7 +102,7 @@ export default {
 			let lastBucket
 			for (const [ref, el] of Object.entries(this.$refs)) {
 				if (!ref.startsWith('bucket')) continue
-				const date = DateTime.fromISO(el[0].dataset.date, {zone: this.timezone})
+				const date = DateTime.fromISO(el[0].dataset.date, { zone: this.timezone })
 				if (lastBucket) {
 					if (lastBucket.toISODate() === date.toISODate()) continue
 				}
@@ -112,10 +114,17 @@ export default {
 			return `bucket-${date.toFormat('yyyy-LL-dd-HH-mm')}`
 		},
 		changeDay (day) {
-			const dayBucket = this.sessionBuckets.find(bucket => day === bucket.date.toISODate())
+			// Find a session bucket that matches the target day when converted to timezone
+			const dayBucket = this.sessionBuckets.find(bucket => {
+				const bucketDate = bucket.date.setZone(this.timezone).toISODate()
+				return day === bucketDate
+			})
 			if (!dayBucket) return
+			
 			const el = this.$refs[this.getBucketName(dayBucket.date)]?.[0]
-			this.programmaticScrollTo(el)
+			if (el) {
+				this.programmaticScrollTo(el)
+			}
 		},
 		calculateScrollTop(element) {
 			const rect = this.$parent.$el.getBoundingClientRect()
