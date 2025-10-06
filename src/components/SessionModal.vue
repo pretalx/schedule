@@ -30,15 +30,19 @@ dialog.pretalx-modal#session-modal(ref="modal", @click.stop="close()")
 											img(v-if="answer.question.icon && remoteApiUrl", :src="`${remoteApiUrl}questions/${answer.question.id}/icon/`", :alt="getLocalizedString(answer.question.question)", width="16", height="16")
 											span(v-else) {{ getLocalizedString(answer.question.question) }}
 								.inline-answer(v-for="answer in shortAnswers", :key="answer.id")
-									span.question
-										strong {{ getLocalizedString(answer.question.question) }}:
-									span.answer(v-if="answer.question.variant === 'file'")
-										i.fa.fa-file-o
-										a(v-if="answer.answer_file", :href="answer.answer_file.url") {{ answer.answer_file }}
-										span(v-else) No file provided
-									span.answer(v-else-if="answer.question.variant === 'boolean'") {{ answer.answer ? 'Yes' : 'No' }}
-									span.answer(v-else-if="answer.answer", v-html="markdownIt.render(answer.answer)")
-									span.answer(v-else) No response
+									template(v-if="answer.question.variant === 'url' && answer.answer")
+										strong.question
+											a(:href="answer.answer", target="_blank", rel="noopener noreferrer") {{ getLocalizedString(answer.question.question) }}
+									template v-else
+										span.question
+											strong {{ getLocalizedString(answer.question.question) }}:
+										span.answer(v-if="answer.question.variant === 'file'")
+											i.fa.fa-file-o
+											a(v-if="answer.answer_file", :href="answer.answer_file.url") {{ answer.answer_file }}
+											span(v-else) No file provided
+										span.answer(v-else-if="answer.question.variant === 'boolean'") {{ answer.answer ? 'Yes' : 'No' }}
+										span.answer(v-else-if="answer.answer", v-html="markdownIt.render(answer.answer)")
+										span.answer(v-else) No response
 			.speakers(v-if="modalContent.contentObject.speakers")
 				a.speaker.inner-card(v-for="speaker in modalContent.contentObject.speakers", @click="handleSpeakerClick(speaker, $event)", :href="`#speaker/${speaker.code}`", :key="speaker.code")
 					.img-wrapper
@@ -135,18 +139,22 @@ export default {
 		}
 	},
 	computed: {
-		shortAnswers () {
+		nonemptyAnswers () {
 			const apiContent = this.modalContent.contentObject.apiContent
 			if (!apiContent || !apiContent.answers || !apiContent.answers.length) return []
 			return apiContent.answers.filter((answer) => {
+				return (answer.question.variant === 'file' && answer.answer_file?.length) || answer.answer?.length
+			})
+
+		},
+		shortAnswers () {
+			return this.nonemptyAnswers.filter((answer) => {
 				// Exclude text answers and URL answers with icons (those go to iconAnswers)
 				return answer.question.variant !== 'text' && !(answer.question.variant === 'url' && answer.question.icon)
 			})
 		},
 		iconAnswers () {
-			const apiContent = this.modalContent.contentObject.apiContent
-			if (!apiContent || !apiContent.answers || !apiContent.answers.length) return []
-			return apiContent.answers.filter((answer) => answer.question.variant === 'url' && answer.question.icon)
+			return this.nonemptyAnswers.filter((answer) => answer.question.variant === 'url' && answer.question.icon)
 		}
 	},
 	methods: {
