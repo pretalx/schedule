@@ -37,6 +37,7 @@ import { getLocalizedString, getPrettyDuration, getSessionTime } from '~/utils'
 import FavButton from '~/components/FavButton.vue'
 
 const markdownIt = MarkdownIt({
+	html: true,
 	linkify: true,
 	breaks: true
 })
