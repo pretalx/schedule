@@ -1,4 +1,23 @@
 // import i18n from 'i18n'
+import MarkdownIt from 'markdown-it'
+import DOMPurify from 'dompurify'
+
+const markdownIt = MarkdownIt({
+	html: true,
+	linkify: true,
+	breaks: true
+})
+
+export const renderMarkdown = (text, inline = false) => {
+	if (!text) return ''
+	try {
+		const rendered = inline ? markdownIt.renderInline(text) : markdownIt.render(text)
+		return DOMPurify.sanitize(rendered)
+	} catch (error) {
+		console.error('Error rendering markdown:', error)
+		return text
+	}
+}
 
 export function getLocalizedString (string) {
 	if (!string) return ''

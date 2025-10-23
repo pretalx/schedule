@@ -81,7 +81,6 @@
 <script>
 import { computed } from 'vue'
 import { DateTime, Settings } from 'luxon'
-import MarkdownIt from 'markdown-it'
 import LinearSchedule from '~/components/LinearSchedule'
 import GridScheduleWrapper from '~/components/GridScheduleWrapper'
 import FavButton from '~/components/FavButton'
@@ -90,11 +89,6 @@ import ScheduleSettings from '~/components/ScheduleSettings'
 import SessionModal from '~/components/SessionModal'
 import FilterModal from '~/components/FilterModal'
 import { findScrollParent, getLocalizedString, getSessionTime, fetchSchedule } from '~/utils'
-
-const markdownIt = MarkdownIt({
-	linkify: false,
-	breaks: true
-})
 
 export default {
 	name: 'PretalxSchedule',
@@ -133,7 +127,6 @@ export default {
 		return {
 			getLocalizedString,
 			getSessionTime,
-			markdownIt,
 			scrollParentWidth: Infinity,
 			schedule: null,
 			userTimezone: null,

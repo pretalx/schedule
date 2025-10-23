@@ -32,15 +32,8 @@ a.c-linear-schedule-session(:class="{faved}", :style="style", :href="link", @cli
 </template>
 <script>
 import { DateTime } from 'luxon'
-import MarkdownIt from 'markdown-it'
-import { getLocalizedString, getPrettyDuration, getSessionTime } from '~/utils'
+import { getLocalizedString, getPrettyDuration, getSessionTime, renderMarkdown } from '~/utils'
 import FavButton from '~/components/FavButton.vue'
-
-const markdownIt = MarkdownIt({
-	html: true,
-	linkify: true,
-	breaks: true
-})
 
 export default {
 	props: {
@@ -121,14 +114,14 @@ export default {
 		abstractText () {
 			let abstractText = this.session.abstract
 			try {
-				const fullAbstract = markdownIt.render(abstractText)
+				const fullAbstract = renderMarkdown(abstractText)
 				if (fullAbstract.length && fullAbstract.includes("<table>")) {
 					const tableStart = abstractText.search("|")
 					if (tableStart >= 0) {
 						abstractText = abstractText.slice(0, tableStart)
 					}
 				}
-				return markdownIt.renderInline(abstractText)
+				return renderMarkdown(abstractText, true)
 			} catch (error) {
 				return abstractText
 			}
