@@ -2,10 +2,11 @@
 dialog.pretalx-modal#filter-modal(ref="modal", @click.stop="close()")
 	.dialog-inner(@click.stop="")
 		button.close-button(@click="close()") ✕
-		h3 Tracks
-		.checkbox-line.tracks(v-for="track in tracks", :key="track.id", :style="{'--track-color': track.color}")
-			bunt-checkbox(type="checkbox", :label="getLocalizedString(track.name)", :name="track.id + '-checkbox'", v-model="trackSelections[track.id]", @input="onTrackToggle(track.id)")
-			.track-description(v-if="getLocalizedString(track.description).length") {{ getLocalizedString(track.description) }}
+		template(v-if="tracks.length > 1")
+			h3 Tracks
+			.checkbox-line.tracks(v-for="track in tracks", :key="track.id", :style="{'--track-color': track.color}")
+				bunt-checkbox(type="checkbox", :label="getLocalizedString(track.name)", :name="track.id + '-checkbox'", v-model="trackSelections[track.id]", @input="onTrackToggle(track.id)")
+				.track-description(v-if="getLocalizedString(track.description).length") {{ getLocalizedString(track.description) }}
 		template(v-if="languages.length > 1")
 			h3 Languages
 			.checkbox-line(v-for="language in languages", :key="language")
