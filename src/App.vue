@@ -7,6 +7,8 @@
 		schedule-settings(
 			:tracks="schedule?.tracks || []",
 			:filteredTracksCount="filteredTracks.length",
+			:languages="availableLanguages",
+			:filteredLanguagesCount="filteredLanguages.length",
 			:favsCount="favs.length",
 			:onlyFavs="onlyFavs",
 			:inEventTimezone="inEventTimezone",
@@ -14,7 +16,7 @@
 			:scheduleTimezone="schedule.timezone",
 			:userTimezone="userTimezone",
 			@openFilter="$refs.filterModal?.showModal()",
-			@toggleFavs="onlyFavs = !onlyFavs; if (onlyFavs) resetFilteredTracks()",
+			@toggleFavs="onlyFavs = !onlyFavs; if (onlyFavs) { resetFilteredTracks(); resetFilteredLanguages(); }",
 			@saveTimezone="saveTimezone"
 		)
 		bunt-tabs.days(v-if="days && days.length > 1", v-model="currentDay", ref="tabs" :class="showGrid? ['grid-tabs'] : ['list-tabs']")
@@ -60,7 +62,10 @@
 		ref="filterModal",
 		:tracks="schedule?.tracks || []",
 		:selectedTrackIds="selectedTrackIds",
-		@trackToggled="onTrackToggled"
+		:languages="availableLanguages",
+		:selectedLanguageCodes="selectedLanguageCodes",
+		@trackToggled="onTrackToggled",
+		@languageToggled="onLanguageToggled"
 	)
 	session-modal(
 		ref="sessionModal",
@@ -135,6 +140,7 @@ export default {
 			currentTimezone: null,
 			favs: [],
 			selectedTrackIds: [],
+			selectedLanguageCodes: [],
 			updatingFromScroll: false,
 			onlyFavs: false,
 			scheduleError: false,
@@ -168,6 +174,20 @@ export default {
 			if (this.selectedTrackIds.length === 0 || !this.schedule?.tracks) return []
 			return this.schedule.tracks.filter(t => this.selectedTrackIds.includes(t.id))
 		},
+		availableLanguages () {
+			if (!this.schedule?.talks) return []
+			const languageSet = new Set()
+			for (const talk of this.schedule.talks) {
+				if (talk.content_locale) {
+					languageSet.add(talk.content_locale)
+				}
+			}
+			return Array.from(languageSet).sort()
+		},
+		filteredLanguages () {
+			if (this.selectedLanguageCodes.length === 0) return []
+			return this.selectedLanguageCodes.filter(code => this.availableLanguages.includes(code))
+		},
 		speakersLookup () {
 			if (!this.schedule) return {}
 			return this.schedule.speakers.reduce((acc, s) => { acc[s.code] = s; return acc }, {})
@@ -178,6 +198,7 @@ export default {
 			for (const session of this.schedule.talks.filter(s => s.start)) {
 				if (this.onlyFavs && !this.favs.includes(session.code)) continue
 				if (this.filteredTracks && this.filteredTracks.length && !this.filteredTracks.find(t => t.id === session.track)) continue
+				if (this.filteredLanguages && this.filteredLanguages.length && !this.filteredLanguages.includes(session.content_locale)) continue
 				const start = DateTime.fromISO(session.start)
 				if (this.displayDates.length && !this.displayDates.includes(start.setZone(this.schedule.timezone).toISODate())) continue
 				sessions.push({
@@ -185,6 +206,7 @@ export default {
 					title: session.title,
 					abstract: session.abstract,
 					do_not_record: session.do_not_record,
+					content_locale: session.content_locale,
 					start: start,
 					end: DateTime.fromISO(session.end),
 					speakers: session.speakers?.map(s => this.speakersLookup[s]),
@@ -580,6 +602,9 @@ export default {
 		resetFilteredTracks () {
 			this.selectedTrackIds = []
 		},
+		resetFilteredLanguages () {
+			this.selectedLanguageCodes = []
+		},
 		onTrackFilterChange (selectedIds) {
 			this.selectedTrackIds = selectedIds
 			this.onlyFavs = false
@@ -589,6 +614,14 @@ export default {
 				this.selectedTrackIds = this.selectedTrackIds.filter(id => id !== trackId)
 			} else {
 				this.selectedTrackIds.push(trackId)
+			}
+			this.onlyFavs = false
+		},
+		onLanguageToggled (languageCode) {
+			if (this.selectedLanguageCodes.includes(languageCode)) {
+				this.selectedLanguageCodes = this.selectedLanguageCodes.filter(code => code !== languageCode)
+			} else {
+				this.selectedLanguageCodes.push(languageCode)
 			}
 			this.onlyFavs = false
 		},
@@ -627,6 +660,9 @@ export default {
 
 				this.selectedTrackIds = this.selectedTrackIds.filter(id =>
 					this.schedule.tracks.some(t => t.id === id)
+				)
+				this.selectedLanguageCodes = this.selectedLanguageCodes.filter(code =>
+					this.availableLanguages.includes(code)
 				)
 				this.favs = this.pruneFavs(this.favs, this.schedule)
 
