@@ -109,8 +109,12 @@ export default {
 			type: String,
 			default: ''
 		},
-		// List the dates that should be displayed, as comma-separated ISO strings
+		// List the data that should be displayed, as comma-separated strings
 		dateFilter: {
+			type: String,
+			default: ''
+		},
+		roomFilter: {
 			type: String,
 			default: ''
 		}
@@ -150,6 +154,7 @@ export default {
 			translationMessages: {},
 			errorMessages: [],
 			displayDates: this.dateFilter?.split(',').filter(d => d.length === 10) || [],
+			displayRooms: this.roomFilter?.split(',').filter(d => d.length > 0) || [],
 			modalContent: null,
 			versionPollInterval: null,
 		}
@@ -200,7 +205,8 @@ export default {
 				if (this.filteredTracks && this.filteredTracks.length && !this.filteredTracks.find(t => t.id === session.track)) continue
 				if (this.filteredLanguages && this.filteredLanguages.length && !this.filteredLanguages.includes(session.content_locale)) continue
 				const start = DateTime.fromISO(session.start)
-				if (this.displayDates.length && !this.displayDates.includes(start.setZone(this.schedule.timezone).toISODate())) continue
+				if (this.displayDates?.length && !this.displayDates.includes(start.setZone(this.schedule.timezone).toISODate())) continue
+				if (this.displayRooms?.length && !this.displayRooms.includes(session.room.toString())) continue
 				sessions.push({
 					id: session.code,
 					title: session.title,
