@@ -27,7 +27,7 @@ dialog.pretalx-modal#session-modal(ref="modal", @click.stop="close()")
 								.icon-group(v-if="iconAnswers.length > 0")
 									.icon-link(v-for="answer in iconAnswers", :key="answer.id")
 										a(:href="answer.answer", target="_blank", rel="noopener noreferrer")
-											img(v-if="answer.question.icon && remoteApiUrl", :src="`${remoteApiUrl}questions/${answer.question.id}/icon/`", :alt="getLocalizedString(answer.question.question)", width="16", height="16")
+											img(v-if="answer.question.icon?.length && answer.question.icon !== '-' && remoteApiUrl", :src="`${remoteApiUrl}questions/${answer.question.id}/icon/`", :alt="getLocalizedString(answer.question.question)", width="16", height="16")
 											span(v-else) {{ getLocalizedString(answer.question.question) }}
 								.inline-answer(v-for="answer in shortAnswers", :key="answer.id")
 									template(v-if="answer.question.variant === 'url' && answer.answer")
@@ -68,7 +68,7 @@ dialog.pretalx-modal#session-modal(ref="modal", @click.stop="close()")
 							.icon-group(v-if="iconAnswers.length > 0")
 								.icon-link(v-for="answer in iconAnswers", :key="answer.id")
 									a(:href="answer.answer", target="_blank", rel="noopener noreferrer")
-										img(v-if="answer.question.icon && remoteApiUrl", :src="`${remoteApiUrl}questions/${answer.question.id}/icon/`", :alt="getLocalizedString(answer.question.question)", width="16", height="16")
+										img(v-if="answer.question.icon?.length && answer.question.icon !== '-' && remoteApiUrl", :src="`${remoteApiUrl}questions/${answer.question.id}/icon/`", :alt="getLocalizedString(answer.question.question)", width="16", height="16")
 										span(v-else) {{ getLocalizedString(answer.question.question) }}
 							.inline-answer(v-for="answer in shortAnswers", :key="answer.id")
 								template(v-if="answer.question.variant === 'url' && answer.answer")
@@ -144,11 +144,11 @@ export default {
 		shortAnswers () {
 			return this.nonemptyAnswers.filter((answer) => {
 				// Exclude text answers and URL answers with icons (those go to iconAnswers)
-				return answer.question.variant !== 'text' && !(answer.question.variant === 'url' && answer.question.icon)
+				return answer.question.variant !== 'text' && !(answer.question.variant === 'url' && answer.question.icon?.length && answer.question.icon !== '-')
 			})
 		},
 		iconAnswers () {
-			return this.nonemptyAnswers.filter((answer) => answer.question.variant === 'url' && answer.question.icon)
+			return this.nonemptyAnswers.filter((answer) => answer.question.variant === 'url' && answer.question.icon?.length && answer.question.icon !== '-')
 		}
 	},
 	methods: {
