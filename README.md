@@ -1,26 +1,28 @@
 # pretalx-schedule
 
+Commands are available via [just](https://github.com/casey/just). Run `just` to see all available commands.
+
 ## Project setup
 ```
-npm ci
+just install
 ```
 
 ### Compiles and hot-reloads for development
 ```
-npm start
+just run
 ```
 
 ### Compiles and minifies for production
 ```
-npm run build
+just build
 ```
 
 ### Build for pretalx (web component)
 
-Make sure the `schedule` and `pretalx` repositories share a root directory, then simply run
+Make sure the `schedule` and `pretalx` repositories share a root directory, then run:
 
 ```
-./update.sh
+just build-pretalx
 ```
 
 ### Release library to npm
@@ -32,5 +34,5 @@ npm publish --access=public
 
 ### Lints and fixes files
 ```
-npm run lint
+just lint
 ```
