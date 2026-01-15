@@ -724,6 +724,7 @@ export default {
 	min-height: 0
 	height: 100%
 	font-size: 14px
+	background-color: $clr-grey-50
 	--pretalx-clr-text: rgb(13,15,16)
 	&.grid-schedule
 		min-width: min-content

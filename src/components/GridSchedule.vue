@@ -346,7 +346,6 @@ export default {
 <style lang="stylus">
 .c-grid-schedule
 	flex: auto
-	background-color: $clr-grey-50
 	.grid
 		display: grid
 		grid-template-columns: 78px repeat(var(--total-rooms), 1fr) auto
