@@ -4,11 +4,10 @@ export default {
 	data() {
 		return {
 			observer: null,
-			programmaticScroll: false,
-			scrolledDay: null
+			programmaticScroll: false
 		}
 	},
-	
+
 	watch: {
 		timezone() {
 			// Rebuild intersection observer when timezone changes
@@ -17,24 +16,24 @@ export default {
 			})
 		}
 	},
-	
+
 	methods: {
 		setupIntersectionObserver() {
 			// Disconnect existing observer if it exists
 			if (this.observer) {
 				this.observer.disconnect()
 			}
-			
+
 			// Create new intersection observer
 			this.observer = new IntersectionObserver(this.onIntersect, {
 				root: this.scrollParent,
 				rootMargin: '-45% 0px'
 			})
-			
+
 			// Call component-specific observe method
 			this.observeElements()
 		},
-		
+
 		onIntersect(results) {
 			// Skip if we're doing programmatic scroll to avoid interference with tab clicks
 			if (this.programmaticScroll) return
@@ -52,20 +51,18 @@ export default {
 			}, { zone: this.timezone })
 
 			if (intersection.isIntersecting) {
-				this.scrolledDay = day
-				this.$emit('changeDay', this.scrolledDay)
+				this.$emit('changeDay', day)
 			} else if (intersection.rootBounds && (intersection.boundingClientRect.y - intersection.rootBounds.y) > 0) {
-				this.scrolledDay = day.minus({days: 1})
-				this.$emit('changeDay', this.scrolledDay)
+				this.$emit('changeDay', day.minus({days: 1}))
 			}
 		},
-		
+
 		programmaticScrollTo(element) {
 			if (!element) return
-			
+
 			// Temporarily disable intersection observer during programmatic scroll
 			this.programmaticScroll = true
-			
+
 			const scrollTop = this.calculateScrollTop(element)
 			if (this.scrollParent) {
 				this.scrollParent.scrollTop = scrollTop

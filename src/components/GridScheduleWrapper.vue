@@ -112,6 +112,16 @@ export default {
 					childRef[0].changeDay(day)
 				}
 			}
+		},
+		scrollToNow () {
+			// Find the GridSchedule that has "now" and scroll to it
+			for (let i = 0; i < this.gridGroups.length; i++) {
+				const childRef = this.$refs['gridSchedule' + i]
+				if (childRef && childRef[0] && childRef[0].nowSlice) {
+					childRef[0].scrollToNow()
+					return
+				}
+			}
 		}
 	}
 }

@@ -52,6 +52,7 @@
 			@changeDay="setCurrentDay($event)",
 			@fav="fav($event)",
 			@unfav="unfav($event)")
+		jump-to-now(:visible="showJumpToNow", :label="translationMessages.jump_to_now || 'Jump to now'", @jump="jumpToNow", @dismiss="dismissJumpToNow")
 	bunt-progress-circular(v-else, size="huge", :page="true")
 	.error-messages(v-if="errorMessages.length")
 		.error-message(v-for="message in errorMessages", :key="message")
@@ -93,11 +94,12 @@ import Session from '~/components/Session'
 import ScheduleSettings from '~/components/ScheduleSettings'
 import SessionModal from '~/components/SessionModal'
 import FilterModal from '~/components/FilterModal'
+import JumpToNow from '~/components/JumpToNow'
 import { findScrollParent, getLocalizedString, getSessionTime, fetchSchedule } from '~/utils'
 
 export default {
 	name: 'PretalxSchedule',
-	components: { FavButton, LinearSchedule, GridScheduleWrapper, Session, ScheduleSettings, SessionModal, FilterModal },
+	components: { FavButton, LinearSchedule, GridScheduleWrapper, Session, ScheduleSettings, SessionModal, FilterModal, JumpToNow },
 	props: {
 		eventUrl: String,
 		locale: String,
@@ -157,6 +159,7 @@ export default {
 			displayRooms: this.roomFilter?.split(',').filter(d => d.length > 0) || [],
 			modalContent: null,
 			versionPollInterval: null,
+			jumpToNowDismissed: false,
 		}
 	},
 	computed: {
@@ -259,6 +262,16 @@ export default {
 		},
 		hasAmPm () {
 			return new Intl.DateTimeFormat(this.locale, {hour: 'numeric'}).resolvedOptions().hour12
+		},
+		hasNow () {
+			// Check if "now" is within the schedule timespan
+			if (!this.sessions || !this.sessions.length) return false
+			const firstSession = this.sessions[0]
+			const lastSession = this.sessions[this.sessions.length - 1]
+			return this.now >= firstSession.start && this.now <= lastSession.end
+		},
+		showJumpToNow () {
+			return this.hasNow && !this.jumpToNowDismissed
 		},
 		eventSlug () {
 			let url = ''
@@ -604,6 +617,18 @@ export default {
 				// Errors are logged by the helper.
 				Promise.allSettled(speakerFetchPromises);
 			}
+		},
+		jumpToNow () {
+			if (this.$refs.gridScheduleWrapper && this.$refs.gridScheduleWrapper.scrollToNow) {
+				this.$refs.gridScheduleWrapper.scrollToNow()
+			}
+			if (this.$refs.linearSchedule && this.$refs.linearSchedule.scrollToNow) {
+				this.$refs.linearSchedule.scrollToNow()
+			}
+			this.jumpToNowDismissed = true
+		},
+		dismissJumpToNow () {
+			this.jumpToNowDismissed = true
 		},
 		resetFilteredTracks () {
 			this.selectedTrackIds = []

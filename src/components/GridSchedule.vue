@@ -249,17 +249,17 @@ export default {
 	},
 	async mounted () {
 		this.setupIntersectionObserver()
-		await this.$nextTick()
-		// scroll to now
-		if (!this.$refs.now) return
-		const scrollTop = this.$refs.now.offsetTop + this.getOffsetTop()
-		if (this.scrollParent) {
-			this.scrollParent.scrollTop = scrollTop
-		} else {
-			window.scroll({top: scrollTop})
-		}
 	},
 	methods: {
+		scrollToNow () {
+			if (!this.$refs.now) return
+			const scrollTop = this.$refs.now.offsetTop + this.getOffsetTop()
+			if (this.scrollParent) {
+				this.scrollParent.scrollTop = scrollTop
+			} else {
+				window.scroll({top: scrollTop})
+			}
+		},
 		observeElements() {
 			// GridSchedule-specific: observe only datebreak slices
 			for (const [ref, el] of Object.entries(this.$refs)) {
@@ -278,19 +278,6 @@ export default {
 		},
 		getOffsetTop () {
 			return window.scrollY + this.$el.getBoundingClientRect().top - 100
-		},
-		getScrolledDay () {
-			// go through all timeslices, on the first one that is actually visible in current scroll, return its date
-			for (const slice of this.timeslices) {
-				const el = this.$refs[slice.name]?.[0]
-				if (!el) continue
-				const rect = el.getBoundingClientRect()
-				// only count as visible if at least 100px are visible
-				const buffer = 100
-				if (rect.top + buffer < window.innerHeight && rect.bottom - buffer > 0) {
-					return slice.date
-				}
-			}
 		},
 		getSliceClasses (slice) {
 			return {
