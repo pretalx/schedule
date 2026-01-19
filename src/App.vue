@@ -1,8 +1,11 @@
 <template lang="pug">
 .pretalx-schedule(:style="{'--scrollparent-width': scrollParentWidth + 'px', '--schedule-max-width': scheduleMaxWidth + 'px', '--pretalx-sticky-date-offset': days && days.length > 1 ? '48px' : '0px'}", :class="showGrid ? ['grid-schedule'] : ['list-schedule']")
 	template(v-if="scheduleError")
-		.schedule-error
-			.error-message An error occurred while loading the schedule. Please try again later.
+		.schedule-notice.error
+			.notice-message {{ translationMessages.schedule_load_error || 'An error occurred while loading the schedule. Please try again later.' }}
+	template(v-else-if="scheduleEmpty")
+		.schedule-notice.info
+			.notice-message {{ translationMessages.schedule_empty || 'The schedule is not yet available. Please check back later!' }}
 	template(v-else-if="schedule && sessions.length")
 		schedule-settings(
 			:tracks="schedule?.tracks || []",
@@ -150,6 +153,7 @@ export default {
 			updatingFromScroll: false,
 			onlyFavs: false,
 			scheduleError: false,
+			scheduleEmpty: false,
 			onHomeServer: false,
 			loggedIn: false,
 			apiUrl: null,
@@ -307,7 +311,7 @@ export default {
 			return
 		}
 		if (!this.schedule.talks.length) {
-			this.scheduleError = true
+			this.scheduleEmpty = true
 			return
 		}
 		this.currentTimezone = localStorage.getItem(`${this.eventSlug}_timezone`)
@@ -707,12 +711,15 @@ export default {
 </script>
 <style lang="stylus">
 @import 'styles/global.styl'
-.schedule-error
-	color: $clr-error
+.schedule-notice
 	font-size: 18px
 	text-align: center
 	padding: 32px
-	.error-message
+	&.error
+		color: $clr-error
+	&.info
+		color: $clr-grey-600
+	.notice-message
 		margin-top: 16px
 
 .pretalx-schedule, dialog.pretalx-modal
