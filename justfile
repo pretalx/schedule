@@ -57,6 +57,11 @@ build-all: build build-wc
 lint:
     npm run lint
 
+# Auto-fix linting errors
+[group('linting')]
+fmt:
+    npm run fmt
+
 # Analyze bundle size (opens visualizer)
 [group('build')]
 analyze:
