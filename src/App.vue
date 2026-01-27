@@ -6,70 +6,86 @@
 	template(v-else-if="scheduleEmpty")
 		.schedule-notice.info
 			.notice-message {{ translationMessages.schedule_empty || 'The schedule is not yet available. Please check back later!' }}
-	template(v-else-if="schedule && sessions.length")
-		schedule-settings(
+	template(v-else-if="schedule")
+		filter-bar(
 			:tracks="schedule?.tracks || []",
-			:filteredTracksCount="filteredTracks.length",
+			:selectedTrackIds="selectedTrackIds",
 			:languages="availableLanguages",
-			:filteredLanguagesCount="filteredLanguages.length",
+			:selectedLanguageCodes="selectedLanguageCodes",
+			:searchQuery="searchQuery",
 			:favsCount="favs.length",
 			:onlyFavs="onlyFavs",
 			:inEventTimezone="inEventTimezone",
 			v-model:currentTimezone="currentTimezone",
 			:scheduleTimezone="schedule.timezone",
 			:userTimezone="userTimezone",
-			@openFilter="$refs.filterModal?.showModal()",
-			@toggleFavs="onlyFavs = !onlyFavs; if (onlyFavs) { resetFilteredTracks(); resetFilteredLanguages(); }",
+			:isMobile="isMobile",
+			:translationMessages="translationMessages",
+			@openFilter="$refs.filterBottomSheet?.showModal()",
+			@toggleFavs="toggleFavs",
 			@saveTimezone="saveTimezone"
 		)
-		bunt-tabs.days(v-if="days && days.length > 1", v-model="currentDay", ref="tabs" :class="showGrid? ['grid-tabs'] : ['list-tabs']")
-			bunt-tab(v-for="day in days", :id="day.toISODate()", :header="day.toLocaleString(dateFormat)", @selected="onTabSelected(day)")
-		grid-schedule-wrapper(v-if="showGrid",
-			ref="gridScheduleWrapper",
-			:sessions="sessions",
-			:rooms="rooms",
-			:days="days",
-			:currentDay="currentDay",
-			:now="now",
-			:hasAmPm="hasAmPm",
-			:timezone="currentTimezone",
-			:locale="locale",
-			:scrollParent="scrollParent",
-			:favs="favs",
-			:onHomeServer="onHomeServer",
-			@changeDay="setCurrentDay($event)",
-			@fav="fav($event)",
-			@unfav="unfav($event)")
-		linear-schedule(v-else,
-			ref="linearSchedule",
-			:sessions="sessions",
-			:rooms="rooms",
-			:currentDay="currentDay",
-			:now="now",
-			:hasAmPm="hasAmPm",
-			:timezone="currentTimezone",
-			:locale="locale",
-			:scrollParent="scrollParent",
-			:favs="favs",
-			:onHomeServer="onHomeServer",
-			@changeDay="setCurrentDay($event)",
-			@fav="fav($event)",
-			@unfav="unfav($event)")
-		jump-to-now(:visible="showJumpToNow", :label="translationMessages.jump_to_now || 'Jump to now'", @jump="jumpToNow", @dismiss="dismissJumpToNow")
+		template(v-if="sessions.length")
+			.days-wrapper
+				bunt-tabs.days(v-if="days && days.length > 1", v-model="currentDay", ref="tabs" :class="showGrid? ['grid-tabs'] : ['list-tabs']")
+					bunt-tab(v-for="day in days", :id="day.toISODate()", :header="day.toLocaleString(dateFormat)", @selected="onTabSelected(day)")
+			grid-schedule-wrapper(v-if="showGrid",
+				ref="gridScheduleWrapper",
+				:sessions="sessions",
+				:rooms="rooms",
+				:days="days",
+				:currentDay="currentDay",
+				:now="now",
+				:hasAmPm="hasAmPm",
+				:timezone="currentTimezone",
+				:locale="locale",
+				:scrollParent="scrollParent",
+				:favs="favs",
+				:onHomeServer="onHomeServer",
+				@changeDay="setCurrentDay($event)",
+				@fav="fav($event)",
+				@unfav="unfav($event)")
+			linear-schedule(v-else,
+				ref="linearSchedule",
+				:sessions="sessions",
+				:rooms="rooms",
+				:currentDay="currentDay",
+				:now="now",
+				:hasAmPm="hasAmPm",
+				:timezone="currentTimezone",
+				:locale="locale",
+				:scrollParent="scrollParent",
+				:favs="favs",
+				:onHomeServer="onHomeServer",
+				@changeDay="setCurrentDay($event)",
+				@fav="fav($event)",
+				@unfav="unfav($event)")
+			jump-to-now(:visible="showJumpToNow", :label="translationMessages.jump_to_now || 'Jump to now'", @jump="jumpToNow", @dismiss="dismissJumpToNow")
+		.schedule-notice.filtered-empty(v-else)
+			.notice-message {{ translationMessages.no_matching_sessions || 'No sessions match your current filters.' }}
+			button.clear-filters-button(@click="clearAllFilters") {{ translationMessages.clear_filters || 'Clear filters' }}
 	bunt-progress-circular(v-else, size="huge", :page="true")
 	.error-messages(v-if="errorMessages.length")
 		.error-message(v-for="message in errorMessages", :key="message")
 			.btn.btn-danger(@click="errorMessages = errorMessages.filter(m => m !== message)") x
 			div.message {{ message }}
 	#bunt-teleport-target(ref="teleportTarget")
-	filter-modal(
-		ref="filterModal",
+	filter-bottom-sheet(
+		ref="filterBottomSheet",
 		:tracks="schedule?.tracks || []",
 		:selectedTrackIds="selectedTrackIds",
 		:languages="availableLanguages",
 		:selectedLanguageCodes="selectedLanguageCodes",
+		:tags="availableTags",
+		:selectedTagIds="selectedTagIds",
+		:searchQuery="searchQuery",
+		:isMobile="isMobile",
+		:translationMessages="translationMessages",
 		@trackToggled="onTrackToggled",
-		@languageToggled="onLanguageToggled"
+		@languageToggled="onLanguageToggled",
+		@tagToggled="onTagToggled",
+		@searchQueryChange="onSearchQueryChange",
+		@clearAll="clearAllFilters"
 	)
 	session-modal(
 		ref="sessionModal",
@@ -94,15 +110,15 @@ import LinearSchedule from '~/components/LinearSchedule'
 import GridScheduleWrapper from '~/components/GridScheduleWrapper'
 import FavButton from '~/components/FavButton'
 import Session from '~/components/Session'
-import ScheduleSettings from '~/components/ScheduleSettings'
 import SessionModal from '~/components/SessionModal'
-import FilterModal from '~/components/FilterModal'
+import FilterBar from '~/components/FilterBar'
+import FilterBottomSheet from '~/components/FilterBottomSheet'
 import JumpToNow from '~/components/JumpToNow'
 import { findScrollParent, getLocalizedString, getSessionTime, fetchSchedule } from '~/utils'
 
 export default {
 	name: 'PretalxSchedule',
-	components: { FavButton, LinearSchedule, GridScheduleWrapper, Session, ScheduleSettings, SessionModal, FilterModal, JumpToNow },
+	components: { FavButton, LinearSchedule, GridScheduleWrapper, Session, SessionModal, FilterBar, FilterBottomSheet, JumpToNow },
 	props: {
 		eventUrl: String,
 		locale: String,
@@ -150,6 +166,8 @@ export default {
 			favs: [],
 			selectedTrackIds: [],
 			selectedLanguageCodes: [],
+			selectedTagIds: [],
+			searchQuery: '',
 			updatingFromScroll: false,
 			onlyFavs: false,
 			scheduleError: false,
@@ -200,6 +218,12 @@ export default {
 			if (this.selectedLanguageCodes.length === 0) return []
 			return this.selectedLanguageCodes.filter(code => this.availableLanguages.includes(code))
 		},
+		availableTags () {
+			return this.schedule?.tags || []
+		},
+		isMobile () {
+			return this.scrollParentWidth <= 768
+		},
 		speakersLookup () {
 			if (!this.schedule) return {}
 			return this.schedule.speakers.reduce((acc, s) => { acc[s.code] = s; return acc }, {})
@@ -211,6 +235,22 @@ export default {
 				if (this.onlyFavs && !this.favs.includes(session.code)) continue
 				if (this.filteredTracks && this.filteredTracks.length && !this.filteredTracks.find(t => t.id === session.track)) continue
 				if (this.filteredLanguages && this.filteredLanguages.length && !this.filteredLanguages.includes(session.content_locale)) continue
+
+				if (this.searchQuery) {
+					const searchLower = this.searchQuery.toLowerCase()
+					const titleText = getLocalizedString(session.title) || ''
+					const titleMatch = titleText.toLowerCase().includes(searchLower)
+					const speakerMatch = session.speakers?.some(code => {
+						const speaker = this.speakersLookup[code]
+						return speaker?.name?.toLowerCase().includes(searchLower)
+					})
+					if (!titleMatch && !speakerMatch) continue
+				}
+
+				if (this.selectedTagIds.length && session.tags) {
+					if (!this.selectedTagIds.some(tagId => session.tags.includes(tagId))) continue
+				}
+
 				const start = DateTime.fromISO(session.start)
 				if (this.displayDates?.length && !this.displayDates.includes(start.setZone(this.schedule.timezone).toISODate())) continue
 				if (this.displayRooms?.length && !this.displayRooms.includes(session.room.toString())) continue
@@ -634,23 +674,12 @@ export default {
 		dismissJumpToNow () {
 			this.jumpToNowDismissed = true
 		},
-		resetFilteredTracks () {
-			this.selectedTrackIds = []
-		},
-		resetFilteredLanguages () {
-			this.selectedLanguageCodes = []
-		},
-		onTrackFilterChange (selectedIds) {
-			this.selectedTrackIds = selectedIds
-			this.onlyFavs = false
-		},
 		onTrackToggled (trackId) {
 			if (this.selectedTrackIds.includes(trackId)) {
 				this.selectedTrackIds = this.selectedTrackIds.filter(id => id !== trackId)
 			} else {
 				this.selectedTrackIds.push(trackId)
 			}
-			this.onlyFavs = false
 		},
 		onLanguageToggled (languageCode) {
 			if (this.selectedLanguageCodes.includes(languageCode)) {
@@ -658,7 +687,26 @@ export default {
 			} else {
 				this.selectedLanguageCodes.push(languageCode)
 			}
+		},
+		onTagToggled (tagId) {
+			if (this.selectedTagIds.includes(tagId)) {
+				this.selectedTagIds = this.selectedTagIds.filter(id => id !== tagId)
+			} else {
+				this.selectedTagIds.push(tagId)
+			}
+		},
+		onSearchQueryChange (query) {
+			this.searchQuery = query
+		},
+		clearAllFilters () {
+			this.selectedTrackIds = []
+			this.selectedLanguageCodes = []
+			this.selectedTagIds = []
+			this.searchQuery = ''
 			this.onlyFavs = false
+		},
+		toggleFavs () {
+			this.onlyFavs = !this.onlyFavs
 		},
 		async checkForScheduleUpdate () {
 			if (!this.schedule || !this.remoteApiUrl) return
@@ -719,6 +767,21 @@ export default {
 		color: $clr-error
 	&.info
 		color: $clr-grey-600
+	&.filtered-empty
+		color: $clr-grey-600
+		padding-top: 48px
+		.clear-filters-button
+			margin-top: 16px
+			padding: 10px 20px
+			background-color: var(--pretalx-clr-primary)
+			color: white
+			border: none
+			border-radius: 6px
+			font-size: 14px
+			font-weight: 500
+			cursor: pointer
+			&:hover
+				opacity: 0.9
 	.notice-message
 		margin-top: 16px
 

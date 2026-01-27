@@ -28,8 +28,8 @@ export default {
 <style lang="stylus">
 .c-jump-to-now
 	position: fixed
-	bottom: 16px
-	right: 16px
+	bottom: 36px
+	right: 20px
 	z-index: 100
 	display: flex
 	align-items: center

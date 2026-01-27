@@ -74,6 +74,16 @@ export function isProperSession (session) {
 	return !!session.id
 }
 
+export const getLanguageName = (code, locale) => {
+	try {
+		const lang = locale || document.querySelector('html').lang || 'en'
+		const languageNames = new Intl.DisplayNames([lang], { type: 'language' })
+		return languageNames.of(code) || code
+	} catch {
+		return code
+	}
+}
+
 export async function fetchSchedule(eventUrl, version) {
 	let versionPath = ''
 	if (version)
