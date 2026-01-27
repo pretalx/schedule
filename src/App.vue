@@ -1,5 +1,5 @@
 <template lang="pug">
-.pretalx-schedule(:style="{'--scrollparent-width': scrollParentWidth + 'px', '--schedule-max-width': scheduleMaxWidth + 'px', '--pretalx-sticky-date-offset': days && days.length > 1 ? '48px' : '0px'}", :class="showGrid ? ['grid-schedule'] : ['list-schedule']")
+.pretalx-schedule(:style="{'--scrollparent-width': scrollParentWidth + 'px', '--schedule-max-width': scheduleMaxWidth + 'px', '--pretalx-sticky-date-offset': allDays && allDays.length > 1 ? '48px' : '0px'}", :class="showGrid ? ['grid-schedule'] : ['list-schedule']")
 	template(v-if="scheduleError")
 		.schedule-notice.error
 			.notice-message {{ translationMessages.schedule_load_error || 'An error occurred while loading the schedule. Please try again later.' }}
@@ -25,10 +25,10 @@
 			@toggleFavs="toggleFavs",
 			@saveTimezone="saveTimezone"
 		)
+		.days-wrapper
+			bunt-tabs.days(v-if="allDays && allDays.length > 1", v-model="currentDay", ref="tabs" :class="showGrid? ['grid-tabs'] : ['list-tabs']")
+				bunt-tab(v-for="day in allDays", :id="day.toISODate()", :header="day.toLocaleString(dateFormat)", @selected="onTabSelected(day)")
 		template(v-if="sessions.length")
-			.days-wrapper
-				bunt-tabs.days(v-if="days && days.length > 1", v-model="currentDay", ref="tabs" :class="showGrid? ['grid-tabs'] : ['list-tabs']")
-					bunt-tab(v-for="day in days", :id="day.toISODate()", :header="day.toLocaleString(dateFormat)", @selected="onTabSelected(day)")
 			grid-schedule-wrapper(v-if="showGrid",
 				ref="gridScheduleWrapper",
 				:sessions="sessions",
@@ -284,6 +284,19 @@ export default {
 			days.sort((a, b) => a.diff(b))
 			return days
 		},
+		allDays () {
+			if (!this.schedule?.talks || !this.currentTimezone) return []
+			const days = []
+			for (const talk of this.schedule.talks) {
+				if (!talk.start) continue
+				const start = DateTime.fromISO(talk.start)
+				if (this.displayDates?.length && !this.displayDates.includes(start.setZone(this.schedule.timezone).toISODate())) continue
+				const day = start.setZone(this.currentTimezone).startOf('day')
+				if (!days.find(d => d.ts === day.ts)) days.push(day)
+			}
+			days.sort((a, b) => a.diff(b))
+			return days
+		},
 		inEventTimezone () {
 			if (!this.schedule?.talks?.length) return false
 			return DateTime.local().offset === DateTime.local({ zone: this.schedule.timezone }).offset
@@ -293,13 +306,13 @@ export default {
 			if (this.showGrid) {
 				// Mobile schedules always omit the weekday to preserve space, for others, we start
 				// shortening the weekday if the schedule gets unwieldy (but we shorten the month name first)
-				if (this.days && (!this.days.length || this.days.length <= 7)) {
+				if (this.allDays && (!this.allDays.length || this.allDays.length <= 7)) {
 					format.weekday = 'long'
 				} else {
 					format.weekday = 'short'
 				}
 			}
-			if ((this.days && this.days.length <= 5) || (this.showGrid && this.schedule && this.schedule.rooms.length > 2)) {
+			if ((this.allDays && this.allDays.length <= 5) || (this.showGrid && this.schedule && this.schedule.rooms.length > 2)) {
 				// If we have fewer than five days or if we're on a sizeable grid schedule, we can show the long month name
 				format.month = 'long'
 			}
