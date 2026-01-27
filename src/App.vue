@@ -739,19 +739,22 @@ export default {
 		margin: 0 auto
 	&.list-schedule
 		min-width: 0
+	.days-wrapper
+		background-color: $clr-white
+		width: 100%
+		position: sticky
+		top: var(--pretalx-sticky-top-offset, 0px)
+		z-index: 30
 	.days
 		background-color: $clr-white
 		tabs-style(active-color: var(--pretalx-clr-primary), indicator-color: var(--pretalx-clr-primary), background-color: transparent)
 		overflow-x: auto
-		position: sticky
-		top: var(--pretalx-sticky-top-offset, 0px)
 		left: 0
-		margin-bottom: 0
+		margin: 0 auto
 		flex: none
 		min-width: 0
 		max-width: var(--schedule-max-width)
 		height: 48px
-		z-index: 30
 		.bunt-tabs-header
 			min-width: min-content
 		.bunt-tabs-header-items
