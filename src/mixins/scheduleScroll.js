@@ -65,15 +65,15 @@ export default {
 
 			const scrollTop = this.calculateScrollTop(element)
 			if (this.scrollParent) {
-				this.scrollParent.scrollTop = scrollTop
+				this.scrollParent.scrollTo({ top: scrollTop, behavior: 'smooth' })
 			} else {
-				window.scroll({top: scrollTop})
+				window.scroll({ top: scrollTop, behavior: 'smooth' })
 			}
 
 			// Re-enable intersection observer after scroll completes
 			setTimeout(() => {
 				this.programmaticScroll = false
-			}, 100)
+			}, 500)
 		}
 	}
 }

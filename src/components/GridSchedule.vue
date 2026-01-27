@@ -257,9 +257,9 @@ export default {
 			const scrollTop = this.$refs.now.offsetTop + this.getOffsetTop()
 			const scrollEl = this.scrollParent
 			if (scrollEl) {
-				scrollEl.scrollTop = scrollTop
+				scrollEl.scrollTo({ top: scrollTop, behavior: 'smooth' })
 			} else {
-				window.scroll({top: scrollTop})
+				window.scroll({ top: scrollTop, behavior: 'smooth' })
 			}
 		},
 		observeElements() {

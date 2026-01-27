@@ -98,10 +98,10 @@ export default {
 				const scrollTop = el.offsetTop - 90
 				const scrollEl = this.scrollParent
 				if (scrollEl) {
-					scrollEl.scrollTop = scrollTop
+					scrollEl.scrollTo({ top: scrollTop, behavior: 'smooth' })
 				} else {
 					const rect = this.$parent.$el.getBoundingClientRect()
-					window.scroll({top: scrollTop + rect.top + window.scrollY})
+					window.scroll({ top: scrollTop + rect.top + window.scrollY, behavior: 'smooth' })
 				}
 			}
 		},
