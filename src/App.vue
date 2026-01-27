@@ -182,6 +182,7 @@ export default {
 			modalContent: null,
 			versionPollInterval: null,
 			jumpToNowDismissed: false,
+			initialRenderComplete: false,
 		}
 	},
 	computed: {
@@ -372,6 +373,10 @@ export default {
 		this.versionPollInterval = setInterval(() => {
 			this.checkForScheduleUpdate()
 		},  5 * 60 * 1000)
+
+		this.$nextTick(() => {
+			this.initialRenderComplete = true
+		})
 	},
 	async mounted () {
 		// We block until we have either a regular parent or a shadow DOM parent
@@ -430,7 +435,7 @@ export default {
 			}
 		},
 		onTabSelected (day) {
-			if (this.updatingFromScroll) {
+			if (this.updatingFromScroll || !this.initialRenderComplete) {
 				return
 			}
 			this.changeDay(day)
