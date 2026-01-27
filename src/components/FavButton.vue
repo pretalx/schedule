@@ -10,6 +10,7 @@ export default {
 	name: 'FavButton',
 	components: { },
 	props: { },
+	emits: ['toggleFav'],
 	data () {
 		return {
 			spinning: false

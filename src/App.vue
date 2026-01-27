@@ -119,6 +119,19 @@ import { findScrollParent, getLocalizedString, getSessionTime, fetchSchedule } f
 export default {
 	name: 'PretalxSchedule',
 	components: { FavButton, LinearSchedule, GridScheduleWrapper, Session, SessionModal, FilterBar, FilterBottomSheet, JumpToNow },
+	provide () {
+		return {
+			eventUrl: this.eventUrl,
+			remoteApiUrl: computed(() => this.remoteApiUrl),
+			buntTeleportTarget: computed(() => this.$refs.teleportTarget),
+			onSessionLinkClick: (event, session) => {
+				if (this.onHomeServer) return
+				event.preventDefault()
+
+				this.showSessionDetails(session, event)
+			}
+		}
+	},
 	props: {
 		eventUrl: String,
 		locale: String,
@@ -138,19 +151,6 @@ export default {
 		roomFilter: {
 			type: String,
 			default: ''
-		}
-	},
-	provide () {
-		return {
-			eventUrl: this.eventUrl,
-			remoteApiUrl: computed(() => this.remoteApiUrl),
-			buntTeleportTarget: computed(() => this.$refs.teleportTarget),
-			onSessionLinkClick: (event, session) => {
-				if (this.onHomeServer) return
-				event.preventDefault()
-
-				this.showSessionDetails(session, event)
-			}
 		}
 	},
 	data () {

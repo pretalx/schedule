@@ -36,6 +36,26 @@ import { getLocalizedString, getPrettyDuration, getSessionTime, renderMarkdown }
 import FavButton from '~/components/FavButton.vue'
 
 export default {
+	components: {
+		FavButton
+	},
+	inject: {
+		eventUrl: { default: null },
+		linkTarget: { default: '_self' },
+		generateSessionLinkUrl: {
+			default () {
+				return ({eventUrl, session}) => {
+					if (!this.onHomeServer) return `#session/${session.id}/`
+					return`${eventUrl}talk/${session.id}/`
+				}
+			}
+		},
+		onSessionLinkClick: {
+			default () {
+				return () => {}
+			}
+		}
+	},
 	props: {
 		now: Object,
 		session: Object,
@@ -63,26 +83,7 @@ export default {
 		timezone: String,
 		onHomeServer: Boolean
 	},
-	inject: {
-		eventUrl: { default: null },
-		linkTarget: { default: '_self' },
-		generateSessionLinkUrl: {
-			default () {
-				return ({eventUrl, session}) => {
-					if (!this.onHomeServer) return `#session/${session.id}/`
-					return`${eventUrl}talk/${session.id}/`
-				}
-			}
-		},
-		onSessionLinkClick: {
-			default () {
-				return () => {}
-			}
-		}
-	},
-	components: {
-		FavButton
-	},
+	emits: ['fav', 'unfav'],
 	data () {
 		return {
 			getPrettyDuration,

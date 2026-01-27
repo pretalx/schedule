@@ -71,6 +71,7 @@ export default {
 		scrollParent: Element,
 		onHomeServer: Boolean
 	},
+	emits: ['fav', 'unfav', 'changeDay'],
 	data () {
 		return {
 			getLocalizedString,
@@ -254,8 +255,9 @@ export default {
 		scrollToNow () {
 			if (!this.$refs.now) return
 			const scrollTop = this.$refs.now.offsetTop + this.getOffsetTop()
-			if (this.scrollParent) {
-				this.scrollParent.scrollTop = scrollTop
+			const scrollEl = this.scrollParent
+			if (scrollEl) {
+				scrollEl.scrollTop = scrollTop
 			} else {
 				window.scroll({top: scrollTop})
 			}

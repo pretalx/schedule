@@ -96,8 +96,9 @@ export default {
 			const el = this.$refs[this.getBucketName(nowBucket.date)]?.[0]
 			if (el) {
 				const scrollTop = el.offsetTop - 90
-				if (this.scrollParent) {
-					this.scrollParent.scrollTop = scrollTop
+				const scrollEl = this.scrollParent
+				if (scrollEl) {
+					scrollEl.scrollTop = scrollTop
 				} else {
 					const rect = this.$parent.$el.getBoundingClientRect()
 					window.scroll({top: scrollTop + rect.top + window.scrollY})
