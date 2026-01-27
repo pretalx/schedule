@@ -1,3 +1,8 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Check for required tools
+_ := require("npm")
+
 [private]
 default:
     @just --list
@@ -57,7 +62,7 @@ lint:
 analyze:
     npm run analyze
 
-# Clean build artifacts
+# Remove build artifacts and Vite cache
 [group('development')]
-clean:
-    rm -rf dist node_modules/.vite
+@clean:
+    -rm -rf dist node_modules/.vite
