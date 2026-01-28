@@ -409,13 +409,34 @@ export default {
 			window.addEventListener('resize', this.onWindowResize)
 			this.onWindowResize()
 		}
-		/* global PRETALX_MESSAGES */
-		if (typeof PRETALX_MESSAGES !== 'undefined') {
-			this.translationMessages = PRETALX_MESSAGES
-			// this variable being present indicates that we're running on our home instance rather than as an embedded widget elsewhere
-			this.onHomeServer = true
-			if (document.querySelector('#pretalx-messages')?.dataset.loggedIn === 'true') {
-				this.loggedIn = true
+		// Detect if we're on the home server by comparing origins
+		if (this.eventUrl) {
+			try {
+				const eventOrigin = new URL(this.eventUrl, window.location.origin).origin
+				this.onHomeServer = eventOrigin === window.location.origin
+			} catch {
+				this.onHomeServer = false
+			}
+		}
+		// Check for logged-in user (only relevant on home server)
+		if (document.body.dataset.pretalxLoggedIn === 'true') {
+			this.loggedIn = true
+		}
+		// Fetch translation messages
+		if (this.eventUrl) {
+			try {
+				const lang = this.locale?.split('-')[0] || 'en'
+				const baseUrl = this.eventUrl.endsWith('/') ? this.eventUrl : `${this.eventUrl}/`
+				const messagesUrl = `${baseUrl}schedule/widget/messages.json?lang=${lang}`
+				const response = await fetch(messagesUrl)
+				if (response.ok) {
+					const messages = await response.json()
+					if (messages && typeof messages === 'object') {
+						this.translationMessages = messages
+					}
+				}
+			} catch {
+				// Silently fail - fallback English strings will be used
 			}
 		}
 	},
