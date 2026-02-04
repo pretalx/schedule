@@ -18,11 +18,14 @@ Teleport(:to="teleportTarget", v-if="isMobile")
 					:selected-language-codes="localSelectedLanguageCodes",
 					:tags="tags",
 					:selected-tag-ids="localSelectedTagIds",
+					:has-non-recorded-sessions="hasNonRecordedSessions",
+					:filter-do-not-record="localFilterDoNotRecord",
 					:search-query="localSearchQuery",
 					:translation-messages="translationMessages",
 					@toggle-track="toggleTrack",
 					@toggle-language="toggleLanguage",
 					@toggle-tag="toggleTag",
+					@toggle-do-not-record="toggleDoNotRecord",
 					@search-input="onSearchInput"
 				)
 
@@ -44,11 +47,14 @@ dialog.pretalx-modal#filter-bottom-sheet-dialog(v-if="!isMobile", ref="modal", @
 			:selected-language-codes="localSelectedLanguageCodes",
 			:tags="tags",
 			:selected-tag-ids="localSelectedTagIds",
+			:has-non-recorded-sessions="hasNonRecordedSessions",
+			:filter-do-not-record="localFilterDoNotRecord",
 			:search-query="localSearchQuery",
 			:translation-messages="translationMessages",
 			@toggle-track="toggleTrack",
 			@toggle-language="toggleLanguage",
 			@toggle-tag="toggleTag",
+			@toggle-do-not-record="toggleDoNotRecord",
 			@search-input="onSearchInput"
 		)
 
@@ -91,6 +97,14 @@ export default {
 			type: Array,
 			default: () => []
 		},
+		hasNonRecordedSessions: {
+			type: Boolean,
+			default: false
+		},
+		filterDoNotRecord: {
+			type: Boolean,
+			default: false
+		},
 		searchQuery: {
 			type: String,
 			default: ''
@@ -104,13 +118,14 @@ export default {
 			default: () => ({})
 		}
 	},
-	emits: ['trackToggled', 'languageToggled', 'tagToggled', 'searchQueryChange', 'clearAll', 'close'],
+	emits: ['trackToggled', 'languageToggled', 'tagToggled', 'doNotRecordToggled', 'searchQueryChange', 'clearAll', 'close'],
 	data () {
 		return {
 			isOpen: false,
 			localSelectedTrackIds: [...this.selectedTrackIds],
 			localSelectedLanguageCodes: [...this.selectedLanguageCodes],
 			localSelectedTagIds: [...this.selectedTagIds],
+			localFilterDoNotRecord: this.filterDoNotRecord,
 			localSearchQuery: this.searchQuery,
 			searchDebounceTimer: null
 		}
@@ -123,6 +138,7 @@ export default {
 			return this.localSelectedTrackIds.length > 0 ||
 				this.localSelectedLanguageCodes.length > 0 ||
 				this.localSelectedTagIds.length > 0 ||
+				this.localFilterDoNotRecord ||
 				this.localSearchQuery.length > 0
 		}
 	},
@@ -142,6 +158,12 @@ export default {
 		selectedTagIds: {
 			handler (newVal) {
 				this.localSelectedTagIds = [...newVal]
+			},
+			immediate: true
+		},
+		filterDoNotRecord: {
+			handler (newVal) {
+				this.localFilterDoNotRecord = newVal
 			},
 			immediate: true
 		},
@@ -229,6 +251,10 @@ export default {
 			}
 			this.$emit('tagToggled', tagId)
 		},
+		toggleDoNotRecord () {
+			this.localFilterDoNotRecord = !this.localFilterDoNotRecord
+			this.$emit('doNotRecordToggled')
+		},
 		onSearchInput (event) {
 			this.localSearchQuery = event.target.value
 			// Debounce search query emission
@@ -243,6 +269,7 @@ export default {
 			this.localSelectedTrackIds = []
 			this.localSelectedLanguageCodes = []
 			this.localSelectedTagIds = []
+			this.localFilterDoNotRecord = false
 			this.localSearchQuery = ''
 			this.$emit('clearAll')
 		}

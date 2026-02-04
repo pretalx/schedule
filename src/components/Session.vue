@@ -23,7 +23,7 @@ a.c-linear-schedule-session(:class="{faved}", :style="style", :href="link", @cli
 			.room(v-if="showRoom && session.room") {{ getLocalizedString(session.room.name) }}
 	.session-icons
 		fav-button(@toggleFav="toggleFav")
-		svg.do-not-record(v-if="session.do_not_record", viewBox="0 0 116.59076 116.59076", width="4116.59076mm", height="116.59076mm", fill="none", xmlns="http://www.w3.org/2000/svg")
+		svg.do-not-record(v-if="session.do_not_record", viewBox="0 0 116.59076 116.59076", width="4116.59076mm", height="116.59076mm", fill="none", xmlns="http://www.w3.org/2000/svg", role="img", :aria-label="translationMessages?.not_recorded || 'Not recorded'")
 			g(transform="translate(-9.3465481,-5.441411)")
 				rect(style="fill:#000000;fill-opacity;stroke:none;stroke-width:11.2589;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill", width="52.753284", height="39.619537", x="35.496307", y="43.927021", rx="5.5179553", ry="7.573648")
 				path(style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:18.7997;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill", d="M 99.787546,47.04792 V 80.425654 L 77.727407,63.736793 Z")
@@ -42,6 +42,7 @@ export default {
 	inject: {
 		eventUrl: { default: null },
 		linkTarget: { default: '_self' },
+		translationMessages: { default: () => ({}) },
 		generateSessionLinkUrl: {
 			default () {
 				return ({eventUrl, session}) => {

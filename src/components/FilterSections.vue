@@ -35,6 +35,15 @@
 				@click="$emit('toggleTag', tag.id)"
 			)
 
+	.filter-section(v-if="hasNonRecordedSessions")
+		label.section-label {{ translationMessages.recording || 'Recording' }}
+		.pills-container
+			filter-pill(
+				:label="translationMessages.not_recorded || 'Not recorded'",
+				:active="filterDoNotRecord",
+				@click="$emit('toggleDoNotRecord')"
+			)
+
 	.filter-section
 		label.section-label {{ translationMessages.search || 'Search' }}
 		.search-input-wrapper
@@ -81,6 +90,14 @@ export default {
 			type: Array,
 			default: () => []
 		},
+		hasNonRecordedSessions: {
+			type: Boolean,
+			default: false
+		},
+		filterDoNotRecord: {
+			type: Boolean,
+			default: false
+		},
 		searchQuery: {
 			type: String,
 			default: ''
@@ -90,7 +107,7 @@ export default {
 			default: () => ({})
 		}
 	},
-	emits: ['toggleTrack', 'toggleLanguage', 'toggleTag', 'searchInput'],
+	emits: ['toggleTrack', 'toggleLanguage', 'toggleTag', 'toggleDoNotRecord', 'searchInput'],
 	methods: {
 		getLocalizedString,
 		getLanguageName,

@@ -12,6 +12,7 @@
 			:selectedTrackIds="selectedTrackIds",
 			:languages="availableLanguages",
 			:selectedLanguageCodes="selectedLanguageCodes",
+			:filterDoNotRecord="filterDoNotRecord",
 			:searchQuery="searchQuery",
 			:favsCount="favs.length",
 			:onlyFavs="onlyFavs",
@@ -78,12 +79,15 @@
 		:selectedLanguageCodes="selectedLanguageCodes",
 		:tags="availableTags",
 		:selectedTagIds="selectedTagIds",
+		:hasNonRecordedSessions="hasNonRecordedSessions",
+		:filterDoNotRecord="filterDoNotRecord",
 		:searchQuery="searchQuery",
 		:isMobile="isMobile",
 		:translationMessages="translationMessages",
 		@trackToggled="onTrackToggled",
 		@languageToggled="onLanguageToggled",
 		@tagToggled="onTagToggled",
+		@doNotRecordToggled="onDoNotRecordToggled",
 		@searchQueryChange="onSearchQueryChange",
 		@clearAll="clearAllFilters"
 	)
@@ -123,6 +127,7 @@ export default {
 		return {
 			eventUrl: this.eventUrl,
 			remoteApiUrl: computed(() => this.remoteApiUrl),
+			translationMessages: computed(() => this.translationMessages),
 			buntTeleportTarget: computed(() => this.$refs.teleportTarget),
 			onSessionLinkClick: (event, session) => {
 				if (this.onHomeServer) return
@@ -167,6 +172,7 @@ export default {
 			selectedTrackIds: [],
 			selectedLanguageCodes: [],
 			selectedTagIds: [],
+			filterDoNotRecord: false,
 			searchQuery: '',
 			updatingFromScroll: false,
 			onlyFavs: false,
@@ -222,6 +228,10 @@ export default {
 		availableTags () {
 			return this.schedule?.tags || []
 		},
+		hasNonRecordedSessions () {
+			if (!this.schedule?.talks) return false
+			return this.schedule.talks.some(t => t.do_not_record)
+		},
 		isMobile () {
 			return this.scrollParentWidth <= 768
 		},
@@ -251,6 +261,8 @@ export default {
 				if (this.selectedTagIds.length && session.tags) {
 					if (!this.selectedTagIds.some(tagId => session.tags.includes(tagId))) continue
 				}
+
+				if (this.filterDoNotRecord && !session.do_not_record) continue
 
 				const start = DateTime.fromISO(session.start)
 				if (this.displayDates?.length && !this.displayDates.includes(start.setZone(this.schedule.timezone).toISODate())) continue
@@ -737,10 +749,14 @@ export default {
 		onSearchQueryChange (query) {
 			this.searchQuery = query
 		},
+		onDoNotRecordToggled () {
+			this.filterDoNotRecord = !this.filterDoNotRecord
+		},
 		clearAllFilters () {
 			this.selectedTrackIds = []
 			this.selectedLanguageCodes = []
 			this.selectedTagIds = []
+			this.filterDoNotRecord = false
 			this.searchQuery = ''
 			this.onlyFavs = false
 		},

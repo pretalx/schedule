@@ -71,6 +71,10 @@ export default {
 			type: Array,
 			default: () => []
 		},
+		filterDoNotRecord: {
+			type: Boolean,
+			default: false
+		},
 		searchQuery: {
 			type: String,
 			default: ''
@@ -121,6 +125,15 @@ export default {
 				pills.push({
 					key: `lang-${code}`,
 					label: getLanguageName(code),
+					color: null
+				})
+			}
+
+			// Do not record pill
+			if (this.filterDoNotRecord) {
+				pills.push({
+					key: 'do-not-record',
+					label: this.translationMessages.not_recorded || 'Not recorded',
 					color: null
 				})
 			}
