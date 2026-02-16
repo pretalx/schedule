@@ -43,6 +43,26 @@ dialog.pretalx-modal#session-modal(ref="modal", @click.stop="close()")
 										span.answer(v-else-if="answer.question.variant === 'boolean'") {{ answer.answer ? 'Yes' : 'No' }}
 										span.answer(v-else-if="answer.answer", v-html="renderMarkdown(answer.answer)")
 										span.answer(v-else) No response
+						template(v-if="resources.length > 0")
+							hr
+							.resources
+								strong {{ translationMessages.see_also || 'See also:' }}
+								template(v-if="resources.length === 1")
+									|
+									a(:href="resources[0].resource", target="_blank", rel="noopener noreferrer")
+										svg.resource-icon(v-if="isFileResource(resources[0].resource)", xmlns="http://www.w3.org/2000/svg", viewBox="0 0 384 512", width="16", height="16")
+											path(fill="currentColor", d="M64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V160H256c-17.7 0-32-14.3-32-32V0H64zM256 0V128H384L256 0zM216 232V334.1l31-31c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-72 72c-9.4 9.4-24.6 9.4-33.9 0l-72-72c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l31 31V232c0-13.3 10.7-24 24-24s24 10.7 24 24z")
+										svg.resource-icon(v-else, xmlns="http://www.w3.org/2000/svg", viewBox="0 0 512 512", width="16", height="16")
+											path(fill="currentColor", d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32h82.7L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3V192c0 17.7 14.3 32 32 32s32-14.3 32-32V32c0-17.7-14.3-32-32-32H320zM80 32C35.8 32 0 67.8 0 112V432c0 44.2 35.8 80 80 80H400c44.2 0 80-35.8 80-80V320c0-17.7-14.3-32-32-32s-32 14.3-32 32V432c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V112c0-8.8 7.2-16 16-16H192c17.7 0 32-14.3 32-32s-14.3-32-32-32H80z")
+										span {{ resources[0].description || 'Resource' }}
+								ul(v-else)
+									li(v-for="resource in resources", :key="resource.id")
+										a(:href="resource.resource", target="_blank", rel="noopener noreferrer")
+											svg.resource-icon(v-if="isFileResource(resource.resource)", xmlns="http://www.w3.org/2000/svg", viewBox="0 0 384 512", width="16", height="16")
+												path(fill="currentColor", d="M64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V160H256c-17.7 0-32-14.3-32-32V0H64zM256 0V128H384L256 0zM216 232V334.1l31-31c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-72 72c-9.4 9.4-24.6 9.4-33.9 0l-72-72c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l31 31V232c0-13.3 10.7-24 24-24s24 10.7 24 24z")
+											svg.resource-icon(v-else, xmlns="http://www.w3.org/2000/svg", viewBox="0 0 512 512", width="16", height="16")
+												path(fill="currentColor", d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32h82.7L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3V192c0 17.7 14.3 32 32 32s32-14.3 32-32V32c0-17.7-14.3-32-32-32H320zM80 32C35.8 32 0 67.8 0 112V432c0 44.2 35.8 80 80 80H400c44.2 0 80-35.8 80-80V320c0-17.7-14.3-32-32-32s-32 14.3-32 32V432c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V112c0-8.8 7.2-16 16-16H192c17.7 0 32-14.3 32-32s-14.3-32-32-32H80z")
+											span {{ resource.description || 'Resource' }}
 			.speakers(v-if="modalContent.contentObject.speakers")
 				a.speaker.inner-card(v-for="speaker in modalContent.contentObject.speakers", @click="handleSpeakerClick(speaker, $event)", :href="`#speaker/${speaker.code}`", :key="speaker.code")
 					.img-wrapper
@@ -114,7 +134,9 @@ export default {
 	name: 'SessionModal',
 	components: { FavButton, Session },
 	inject: {
-		remoteApiUrl: { default: '' }
+		remoteApiUrl: { default: '' },
+		translationMessages: { default: () => ({}) },
+		eventUrl: { default: '' }
 	},
 	props: {
 		modalContent: Object,
@@ -149,6 +171,11 @@ export default {
 		},
 		iconAnswers () {
 			return this.nonemptyAnswers.filter((answer) => answer.question.variant === 'url' && answer.question.icon?.length && answer.question.icon !== '-')
+		},
+		resources () {
+			const apiContent = this.modalContent?.contentObject?.apiContent
+			if (!apiContent?.resources?.length) return []
+			return apiContent.resources.filter(r => r.resource)
 		}
 	},
 	methods: {
@@ -160,6 +187,11 @@ export default {
 		},
 		handleSpeakerClick (speaker, event) {
 			this.$emit('showSpeaker', speaker, event)
+		},
+		isFileResource (url) {
+			try {
+				return new URL(url).origin === new URL(this.eventUrl).origin
+			} catch { return false }
 		}
 	}
 }
@@ -286,6 +318,27 @@ export default {
 					text-decoration: none
 					&:hover
 						text-decoration: underline
+
+	.resources
+		strong
+			margin-right: 4px
+
+		a[href]
+			color: var(--pretalx-clr-primary)
+			text-decoration: none
+			&:hover
+				text-decoration: underline
+
+		.resource-icon
+			display: inline-block
+			vertical-align: middle
+			margin-right: 4px
+
+		ul
+			margin: 4px 0 0 0
+			padding-left: 20px
+			li
+				margin-bottom: 4px
 
 	.inner-card
 		display: flex
