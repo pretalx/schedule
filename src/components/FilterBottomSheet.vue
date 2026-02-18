@@ -7,7 +7,7 @@ Teleport(:to="teleportTarget", v-if="isMobile")
 		.filter-bottom-sheet(v-if="isOpen", role="dialog", aria-modal="true", aria-label="Filter options", @click.stop)
 			.sheet-header
 				h3 {{ translationMessages.filters || 'Filters' }}
-				button.clear-all-button(v-if="hasActiveFilters", @click="clearAll") {{ translationMessages.clear_all || 'Clear all' }}
+				button.clear-all-button(v-if="hasActiveFilters", @click="clearAll") {{ translationMessages.clear_filters || 'Clear filters' }}
 				button.close-button(@click="close", aria-label="Close filters") ✕
 
 			.sheet-content
