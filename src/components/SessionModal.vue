@@ -14,6 +14,7 @@ dialog.pretalx-modal#session-modal(ref="modal", @click.stop="close()")
 						span.ampm(v-if="getSessionTime(modalContent.contentObject, currentTimezone, locale, hasAmPm).ampm") {{ getSessionTime(modalContent.contentObject, currentTimezone, locale, hasAmPm).ampm }}
 					.room(v-if="modalContent.contentObject.room") {{ getLocalizedString(modalContent.contentObject.room.name) }}
 					.track(v-if="modalContent.contentObject.track", :style="{ color: modalContent.contentObject.track.color }") {{ getLocalizedString(modalContent.contentObject.track.name) }}
+					.language(v-if="isMultilang && modalContent.contentObject.content_locale") {{ getLanguageName(modalContent.contentObject.content_locale) }}
 				.text-content
 					.abstract(v-if="modalContent.contentObject.abstract", v-html="renderMarkdown(modalContent.contentObject.abstract)")
 					template(v-if="modalContent.contentObject.isLoading")
@@ -126,7 +127,7 @@ dialog.pretalx-modal#session-modal(ref="modal", @click.stop="close()")
 </template>
 
 <script>
-import { getLocalizedString, getSessionTime, renderMarkdown } from '~/utils'
+import { getLocalizedString, getSessionTime, getLanguageName, renderMarkdown } from '~/utils'
 import FavButton from '~/components/FavButton.vue'
 import Session from '~/components/Session.vue'
 
@@ -144,13 +145,15 @@ export default {
 		locale: String,
 		hasAmPm: Boolean,
 		now: Object,
-		onHomeServer: Boolean
+		onHomeServer: Boolean,
+		isMultilang: Boolean
 	},
 	emits: ['toggleFav', 'showSpeaker', 'fav', 'unfav'],
 	data () {
 		return {
 			renderMarkdown,
 			getLocalizedString,
+			getLanguageName,
 			getSessionTime
 		}
 	},

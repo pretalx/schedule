@@ -99,6 +99,7 @@
 		:hasAmPm="hasAmPm",
 		:now="now",
 		:onHomeServer="onHomeServer",
+		:isMultilang="isMultilang",
 		@toggleFav="favs.includes(modalContent?.contentObject.id) ? unfav(modalContent.contentObject.id) : fav(modalContent.contentObject.id)",
 		@showSpeaker="showSpeakerDetails",
 		@fav="fav($event)",
@@ -220,6 +221,9 @@ export default {
 				}
 			}
 			return Array.from(languageSet).sort()
+		},
+		isMultilang () {
+			return this.availableLanguages.length > 1
 		},
 		filteredLanguages () {
 			if (this.selectedLanguageCodes.length === 0) return []
